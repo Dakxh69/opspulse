@@ -9,6 +9,12 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg)](https://react.dev)
 [![Docker Compose](https://img.shields.io/badge/Docker%20Compose-v2-2496ed.svg)](https://docker.com)
+[![Runbook & Concepts](https://img.shields.io/badge/Guide-Runbook%20%26%20Concepts-blueviolet.svg)](RUNBOOK_AND_CONCEPTS.md)
+
+---
+
+> 📖 **Looking for the complete execution instructions and computer science concepts breakdown?**  
+> Read the [**Complete Execution Runbook & Architecture Concepts Guide (RUNBOOK_AND_CONCEPTS.md)**](RUNBOOK_AND_CONCEPTS.md).
 
 ---
 
