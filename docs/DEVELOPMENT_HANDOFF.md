@@ -5,67 +5,66 @@
 
 ---
 
-## Handoff: Session 2 (Day 2 Complete)
+## Handoff: Session 3 (Day 3 Complete — Phase 1 Foundation 100% Complete)
 **Date:** 2026-11-05  
-**Current State:** Day 2 complete; ready for Day 3.  
+**Current State:** Phase 1 complete; ready to begin Phase 2 (Monitoring Agent).
 
 ### Repository Location
 `/home/daxx69/.gemini/antigravity/scratch/opspulse`  
 **Branch:** `main`  
 
 ### Current Day and Phase
-- **Day:** 2 of 30 complete (FastAPI Skeleton & Tooling)
-- **Phase:** 1 — Foundation
-- **Roadmap Position:** Day 3 next (Database Foundation)
+- **Day:** 3 of 30 complete (Database Foundation & Migrations)
+- **Phase:** Phase 1 — Foundation (100% complete)
+- **Roadmap Position:** Day 4 next (Phase 2: CPU Metric Collector)
 
 ### Verified Completed Work
-- [x] Host environment audited (Ubuntu 26.04.1, Python 3.14.4, Docker 29.8.2, Docker Compose v5.6.0)
-- [x] Git repository initialized on `main` branch with clean history
-- [x] Directory structure matching spec Section 19 established
-- [x] Environment and secret protection (`.gitignore`, `.dockerignore`, `.env.example`)
-- [x] Multi-stage `Dockerfile` with Python 3.12-slim and `/opt/venv`
-- [x] Pinned `requirements.txt`
-- [x] Application settings with `pydantic-settings`
-- [x] Structured JSON logging with ISO 8601 UTC timestamps
-- [x] FastAPI application factory with lifespan and CORS
-- [x] Health check endpoints (`/api/v1/health`)
-- [x] Strict linting (`ruff`), typing (`mypy`), and testing (`pytest`)
-- [x] GitHub Actions CI workflow (`.github/workflows/ci.yml`)
-- [x] All 4 unit tests passing in isolated container
+- [x] Host environment audited (Ubuntu 26.04.1, Docker 29, Docker Compose v5.6.0)
+- [x] Monorepo scaffolded per spec Section 19 on `main` branch
+- [x] Secret boundaries established (.gitignore, .dockerignore, .env.example)
+- [x] Multi-stage Docker containerization using `python:3.12-slim` with `/opt/venv`
+- [x] FastAPI application factory with async lifespan, CORS, and typed settings
+- [x] RFC 3339 UTC JSON structured logging
+- [x] PostgreSQL 17 Alpine healthy in Docker Compose
+- [x] Dual-engine SQLAlchemy setup (asyncpg for API, psycopg2 for migrations/workers)
+- [x] Core relational models: `User` (RBAC, email index, bcrypt hash) and `Agent` (UUID PK, AgentStatus enum, heartbeat tracking)
+- [x] Alembic migration `5d7b14653929` verified upgrade/downgrade/re-upgrade
+- [x] Readiness probe `GET /api/v1/health` with live PostgreSQL ping (`{"database": "ok"}`)
+- [x] Pytest suite with NullPool fixture: 8/8 tests passing in 0.85s
+- [x] Ruff clean (0 errors, 24 files formatted) & Mypy clean (0 issues across 24 files)
 - [x] Live container smoke test confirmed HTTP 200
 
-### Incomplete Work (Day 3 Target)
-- [ ] PostgreSQL integration via async SQLAlchemy (`asyncpg`) and sync SQLAlchemy (`psycopg2`)
-- [ ] Alembic migration environment configuration
-- [ ] Baseline database schemas (`users`, `agents`)
-- [ ] Migration up/down verification
-- [ ] Database readiness check in health endpoint
+### Incomplete Work (Phase 2 Target — Days 4–7)
+- [ ] Agent CPU metric collector with multi-core utilization & load average (Day 4)
+- [ ] Agent Memory & Swap collector (Day 5)
+- [ ] Agent Disk mounts & Network counter delta collectors (Day 6)
+- [ ] Agent runtime: scheduler, bounded local buffer queue, exponential backoff, graceful shutdown (Day 7)
 
 ### Latest Test State
-- **Unit Tests:** 4 passed (`pytest tests/test_health.py`)
+- **Automated Tests:** 8 passed (`pytest tests/`)
 - **Linter / Formatter:** 0 errors (`ruff check`, `ruff format --check`)
-- **Type Checker:** 0 errors across 16 source files (`mypy app/`)
-- **Container Smoke Test:** Verified HTTP 200 `{"status":"ok","version":"0.1.0"}`
+- **Type Checker:** 0 errors across 24 source files (`mypy app/ tests/`)
+- **Container Smoke Test:** Verified HTTP 200 `{"status":"ok","version":"0.1.0","database":"ok"}`
 
 ### Active Issues
-- KI-001 (Host Python 3.14 lack of wheels): Fully resolved via containerized testing and deployment (`python:3.12-slim`).
+- None. KI-001 (Python 3.14 wheels), KI-002 (system pip), and KI-003 (test loop connection pooling) are fully resolved and documented.
 
 ### Recent Decisions
-- DEC-001 through DEC-008: Core architecture, data storage, auth, and queue decisions.
+- DEC-001 to DEC-008: Core monorepo, auth, retention, and schema decisions.
 - DEC-009: Containerized Python 3.12 development and testing strategy.
+- DEC-010: Database connection pooling strategy (NullPool for tests, AsyncAdaptedQueuePool for production).
 
 ### Important Files to Inspect on Resume
 1. `spec.md` — Authoritative specification
 2. `PROJECT_STATE.md` & `docs/PROJECT_STATUS.md` — Current completion status
-3. `backend/app/main.py` — Application entry point
-4. `backend/app/core/config.py` — Application configuration
-5. `docker-compose.yml` — Local service orchestration
+3. `docs/reports/DAY_03_REPORT.md` — Day 3 closure report
+4. `backend/app/models/` — User and Agent entities
+5. `backend/app/database/session.py` — Database engine and session factory
+6. `docker-compose.yml` — Local service orchestration
 
-### Exact Next Task (Day 3)
-1. Configure and start PostgreSQL in `docker-compose.yml`.
-2. Implement `backend/app/database/session.py` with `AsyncSession` and `get_db` dependency.
-3. Set up Alembic in `backend/alembic/` configured for `asyncpg`/`psycopg2`.
-4. Create `User` and `Agent` SQLAlchemy models.
-5. Generate and execute initial Alembic migration.
-6. Verify migration rollback and re-apply.
-7. Write tests for database session lifecycle and model constraints.
+### Exact Next Task (Day 4 — Phase 2 Kickoff)
+1. In `agent/opspulse_agent/collectors/cpu.py`, implement `CpuCollector` using `psutil`.
+2. Collect overall CPU utilization percentage, per-core utilization, logical CPU count, and 1m/5m/15m system load averages.
+3. Handle the first sampling interval correctly (non-blocking delta calculation).
+4. Author comprehensive unit tests in `agent/tests/test_cpu_collector.py` with mock fixtures.
+5. Verify test coverage and static type safety.

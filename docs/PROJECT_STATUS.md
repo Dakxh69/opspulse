@@ -1,10 +1,10 @@
 # OpsPulse — Project Status
 
 **Last updated:** 2026-11-05  
-**Current phase:** Phase 1 — Foundation  
-**Current day:** Day 2 Complete  
+**Current phase:** Phase 1 Complete (Phase 2 Ready)  
+**Current day:** Day 3 Complete  
 **Overall status:** `IN PROGRESS`  
-**Completion:** ~10% (verified acceptance criteria)
+**Completion:** ~15% (Phase 1 100% verified)
 
 ---
 
@@ -12,27 +12,27 @@
 
 | Module | Status | Notes |
 |---|---|---|
-| Repository init | `COMPLETE` | Git repo, main branch, .gitignore, .dockerignore |
+| Repository init | `COMPLETE` | Git repo on `main`, .gitignore, .dockerignore |
 | Environment audit | `COMPLETE` | Tool versions recorded |
-| .env.example | `COMPLETE` | All required env vars documented |
-| README.md | `COMPLETE` | Project overview and quick-start stub |
-| Documentation skeleton | `COMPLETE` | All required docs created |
-| spec.md copied | `COMPLETE` | Authoritative spec in root |
-| FastAPI application skeleton | `COMPLETE` | `app/main.py` with lifespan & CORS |
-| Core settings & logging | `COMPLETE` | `app/core/config.py` & `app/core/logging.py` |
-| Health endpoints | `COMPLETE` | `GET /api/v1/health` implemented & verified |
-| CI and containerization | `COMPLETE` | GitHub Actions workflow, Dockerfile, docker-compose.yml |
-| Code quality tools | `COMPLETE` | ruff, mypy, pytest in pyproject.toml |
+| .env.example & README.md | `COMPLETE` | Environment template & project documentation |
+| Documentation system | `COMPLETE` | Daily progress, session log, decision log, handoff |
+| FastAPI application skeleton | `COMPLETE` | Factory, lifespan, CORS, error handling |
+| Core settings & logging | `COMPLETE` | pydantic-settings & RFC 3339 UTC JSON logging |
+| Health & readiness probes | `COMPLETE` | GET /api/v1/health with DB ping |
+| CI and containerization | `COMPLETE` | Multi-stage Dockerfile, docker-compose, GitHub Actions |
+| Code quality tools | `COMPLETE` | Ruff, Mypy strict, Pytest-asyncio |
+| Database foundation | `COMPLETE` | PostgreSQL 17, asyncpg + psycopg2 engines |
+| Models & Migrations | `COMPLETE` | User & Agent models, Alembic migrations verified |
 
 ## In Progress
 
 | Module | Status | Notes |
 |---|---|---|
-| Database foundation | `NOT STARTED` | Day 3 target |
+| Phase 2: Monitoring Agent | `NOT STARTED` | Day 4 target |
 
 ## Pending Modules
 
-- Monitoring agent collectors (Days 4–7)
+- Agent collectors (Days 4–7)
 - Agent provisioning & auth (Day 8)
 - Heartbeat & ingestion API (Day 9)
 - Queue & worker (Day 10)
@@ -46,15 +46,16 @@
 
 | Suite | Status | Notes |
 |---|---|---|
-| Unit tests | `PASSING` | 4/4 passed (pytest in Docker) |
-| Lint & format | `PASSING` | ruff check & format passed |
-| Type check | `PASSING` | mypy passed (0 errors in 16 source files) |
-| Live smoke test | `PASSING` | curl http://localhost:8000/api/v1/health returned 200 OK |
+| Unit & Integration tests | `PASSING` | 8/8 passed in 0.85s |
+| Lint & format | `PASSING` | Ruff check & format clean (24 files) |
+| Type check | `PASSING` | Mypy passed (0 errors across 24 files) |
+| Live smoke test | `PASSING` | curl /api/v1/health returned 200 OK {"database": "ok"} |
+| Migration tests | `PASSING` | alembic upgrade -> downgrade -> upgrade clean |
 
 ## Known Blockers
 
-- **KI-001 (Host Python 3.14):** Handled via Docker containerization with Python 3.12.
+None. All Phase 1 foundation deliverables are verified.
 
 ## Exact Next Task
 
-**Day 3:** Configure PostgreSQL, integrate SQLAlchemy (async for FastAPI, sync for Celery), configure Alembic migrations, define baseline models (`users`, `agents`), verify migration up/down.
+**Day 4:** Implement CPU metric collector in `agent/opspulse_agent/collectors/cpu.py` with multi-core utilization, logical core count, load averages, and unit tests.

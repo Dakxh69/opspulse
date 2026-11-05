@@ -71,3 +71,33 @@ Provide a production-ready, typed ASGI foundation with structured logging, confi
 
 ### Known Limitations
 - Database and Redis connectivity health checks are planned for Day 3 and Day 10.
+
+
+---
+
+## Module: Database Foundation & ORM Models
+**Date:** 2026-11-05  
+**Status:** COMPLETE  
+
+### Files
+- `backend/app/database/session.py`
+- `backend/app/database/__init__.py`
+- `backend/app/models/base.py`
+- `backend/app/models/user.py`
+- `backend/app/models/agent.py`
+- `backend/app/models/__init__.py`
+- `backend/alembic.ini`
+- `backend/alembic/env.py`
+- `backend/alembic/script.py.mako`
+- `backend/alembic/versions/5d7b14653929_create_initial_users_and_agents.py`
+- `backend/tests/conftest.py`
+- `backend/tests/test_database.py`
+
+### Purpose
+Establish persistent storage layer in PostgreSQL with asynchronous sessions for API endpoints, synchronous engines for migrations and Celery workers, Alembic schema versioning, and initial schemas for User authentication and Agent tracking.
+
+### Verification
+- `alembic upgrade head && alembic downgrade base && alembic upgrade head` passed.
+- 4 database integration tests passing.
+- 0 Ruff errors, 0 Mypy errors across 24 source files.
+- Live readiness probe returns `{"database": "ok"}`.

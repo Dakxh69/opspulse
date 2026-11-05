@@ -171,3 +171,74 @@ Implemented the modular FastAPI backend application following clean architecture
 
 ### Next Day
 - Day 3: Database foundation (PostgreSQL, SQLAlchemy 2.0 async/sync setup, Alembic migrations).
+
+
+---
+
+## Day 3 — Database Foundation and Alembic Migrations
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 1 — Foundation Complete)
+
+### Objectives
+- [x] Configure and verify PostgreSQL 17 in docker-compose.yml
+- [x] Implement asynchronous engine (asyncpg) and session factory in app/database/session.py
+- [x] Implement synchronous engine (psycopg2) for Alembic and Celery
+- [x] Create base model mixins (UUID primary key, UTC timestamps) in app/models/base.py
+- [x] Define User model (RBAC enum, password hash, email index) in app/models/user.py
+- [x] Define Agent model (status enum, version, heartbeat tracking) in app/models/agent.py
+- [x] Configure Alembic (alembic.ini, alembic/env.py) and generate initial migration
+- [x] Test migration rollback and re-apply cycle (upgrade head -> downgrade base -> upgrade head)
+- [x] Integrate database health probe into GET /api/v1/health
+- [x] Add conftest.py with NullPool fixture for loop isolation during testing
+- [x] Implement 4 database integration tests in tests/test_database.py (8/8 total tests passing)
+- [x] Verify Ruff (0 errors), Ruff format (24 files), Mypy (0 issues across 24 files)
+- [x] Verify live container response {"status":"ok","version":"0.1.0","database":"ok"}
+
+### Files Changed
+- `backend/alembic.ini`
+- `backend/alembic/env.py`
+- `backend/alembic/script.py.mako`
+- `backend/alembic/versions/5d7b14653929_create_initial_users_and_agents.py`
+- `backend/app/models/base.py`
+- `backend/app/models/user.py`
+- `backend/app/models/agent.py`
+- `backend/app/models/__init__.py`
+- `backend/app/database/session.py`
+- `backend/app/database/__init__.py`
+- `backend/app/core/config.py`
+- `backend/app/api/v1/health.py`
+- `backend/tests/conftest.py`
+- `backend/tests/test_health.py`
+- `backend/tests/test_database.py`
+- `PROJECT_STATE.md`
+- `docs/PROJECT_STATUS.md`
+- `docs/SESSION_LOG.md`
+- `docs/DECISIONS.md`
+- `docs/DECISION_LOG.md`
+- `docs/KNOWN_ISSUES.md`
+- `docs/TEST_REPORT.md`
+- `docs/DEVELOPMENT_HANDOFF.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `docs/reports/README.md`
+- `docs/reports/DAY_03_REPORT.md`
+
+### Implementation Summary
+Completed the entire Phase 1 Foundation milestone. Implemented the dual-engine database architecture (asyncpg for low-latency asynchronous API operations, and psycopg2 for schema migrations and worker tasks). Authored the initial relational schema for User RBAC and monitored Agents. Built and verified the Alembic migration pipeline, confirming zero orphaned types upon downgrade. Added health readiness checks and verified the complete test suite.
+
+### Commands and Verification
+- `docker compose up -d postgres` — healthy container running
+- `alembic upgrade head && alembic downgrade base && alembic upgrade head` — 100% clean migration cycle
+- `docker run ... ruff check app/ tests/` — 0 errors
+- `docker run ... ruff format --check app/ tests/` — 24 files clean
+- `docker run ... mypy app/ tests/` — 0 errors across 24 source files
+- `docker run ... pytest -v` — 8 passed in 0.85s
+- `curl http://localhost:8000/api/v1/health` — `{"status":"ok","version":"0.1.0","database":"ok"}`
+
+### Decisions
+- DEC-010: Database Connection Pooling Strategy (NullPool in tests/debug, AsyncAdaptedQueuePool in production)
+
+### Issues
+- Resolved: KI-003 (asyncpg cross-loop connection leakage resolved via NullPool test fixture).
+
+### Next Day
+- Day 4: Phase 2 — Monitoring Agent (CPU metric collector with psutil, per-core metrics, load averages, and unit tests).

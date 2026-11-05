@@ -285,3 +285,33 @@ Option 2: Build and run backend development tasks inside a multi-stage Docker co
 ### Consequences
 - CI and local dev commands will execute via Docker or Python 3.12.
 - Host agent (when built on Day 4) uses pure Python standard libraries or wheels available for Python 3.14 (psutil has wheels).
+
+
+---
+
+## DEC-010 — Database Connection Pooling Strategy (AsyncAdaptedQueuePool vs NullPool)
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+In asynchronous Python applications using SQLAlchemy and `asyncpg`, connections stored in a connection pool are bound to the `asyncio` event loop that created them. In production under Uvicorn/FastAPI, a single long-lived event loop runs for the lifetime of the process. In automated test runners (`pytest-asyncio` with function-scoped loops), each test function runs in a distinct event loop. When a test finishes and closes its loop, any connection retained in the pool retains a pointer to the closed loop, triggering `RuntimeError: Task got Future attached to a different loop` on subsequent tests.
+
+### Options Considered
+1. Session-scoped event loop in pytest — forces all tests to share one event loop, which can hide concurrency bugs or state leakage between tests.
+2. Explicit `NullPool` in testing and debug environments — each session creates and closes its own socket connection with no persistent pooling across distinct test loops.
+3. Dispose engine before every test — requires teardown boilerplate in every test module.
+
+### Decision
+Option 2: Dynamically select `poolclass=NullPool` when `settings.DEBUG or settings.TESTING` is active, and use `AsyncAdaptedQueuePool` with `pool_pre_ping=True` in production. Additionally, provide a `db_session` fixture in `conftest.py` with `NullPool` for all integration tests.
+
+### Reason
+- Eliminates cross-loop connection contamination in pytest with zero boilerplate in test cases.
+- Ensures production retains high-performance connection reuse via `AsyncAdaptedQueuePool`.
+- `pool_pre_ping=True` ensures that any stale socket disconnected by PostgreSQL or network restarts is automatically discarded and renewed.
+
+### Trade-offs
+- Tests open and close connections per session, introducing a minor (~10ms) overhead per test, which is negligible for our test suite (8 tests execute in <1s).
+
+### Consequences
+- All integration tests run cleanly without event loop conflicts.
+- Production handles high-concurrency requests with connection reuse.

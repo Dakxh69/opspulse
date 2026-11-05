@@ -1,16 +1,9 @@
 """
-OpsPulse Backend — Health Check Endpoints
+OpsPulse Backend — Health & Readiness Check Endpoints
 
-Provides lightweight liveness and readiness probes:
-- GET /api/v1/health  — always returns OK if the process is alive
-- GET /health         — alias at the root level (also mounted in main.py)
-
-Future work (Day 3+): Add database and Redis connectivity checks to the
-readiness probe so Docker and load balancers can detect degraded state.
-
-Why separate health endpoints?
-- Load balancers, Docker HEALTHCHECK, and Kubernetes use different paths.
-- /health is a common default; /api/v1/health fits within the API namespace.
+Provides liveness and readiness probes:
+- GET /api/v1/health  — reports application status, version, and database connectivity.
+- GET /health         — alias at the root level.
 """
 
 from __future__ import annotations
@@ -20,6 +13,9 @@ from typing import Literal
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+
+from app.core.config import settings
+from app.database.session import check_database_health
 
 logger = logging.getLogger(__name__)
 
@@ -31,18 +27,29 @@ class HealthResponse(BaseModel):
 
     status: Literal["ok", "degraded", "error"]
     version: str
-    # Future: add "database": "ok" | "error", "redis": "ok" | "error"
+    database: Literal["ok", "error"]
 
 
-@router.get("/health", response_model=HealthResponse, summary="Health check")
+@router.get("/health", response_model=HealthResponse, summary="Health & readiness probe")
 async def health_check() -> HealthResponse:
     """
-    Liveness probe.
+    Liveness and readiness probe.
 
-    Returns HTTP 200 with status='ok' if the application is running.
-    Does NOT yet check database or Redis connectivity — that is a Day 3+ task.
+    Checks:
+    1. Application process is running (ok).
+    2. PostgreSQL database connection ping (ok or error).
     """
-    from app.core.config import settings
+    db_healthy = await check_database_health()
 
-    logger.debug("Health check requested")
-    return HealthResponse(status="ok", version=settings.APP_VERSION)
+    status: Literal["ok", "degraded", "error"]
+    if db_healthy:
+        status = "ok"
+    else:
+        status = "degraded"
+        logger.warning("Readiness probe reported degraded state: database is unreachable")
+
+    return HealthResponse(
+        status=status,
+        version=settings.APP_VERSION,
+        database="ok" if db_healthy else "error",
+    )

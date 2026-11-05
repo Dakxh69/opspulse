@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # --- Application ---
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
+    TESTING: bool = False
     LOG_LEVEL: str = "INFO"
 
     # --- CORS ---
