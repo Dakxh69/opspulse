@@ -1,0 +1,88 @@
+# =============================================================================
+# OpsPulse — .gitignore
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ruff
+.ruff_cache/
+
+# --- Node / Frontend ---
+node_modules/
+frontend/dist/
+frontend/build/
+*.local
+
+# --- Secrets — NEVER commit these ---
+.env
+.env.local
+.env.*.local
+secrets/
+*.pem
+*.key
+*.crt
+
+# --- Docker ---
+*.override.yml
+docker-compose.override.yml
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# --- Editor ---
+.vscode/settings.json
+.idea/
+*.iml
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Database volumes (local dev) ---
+pgdata/
+redis-data/
+
+# --- Alembic (never ignore migrations themselves, only local dev artifacts) ---
+alembic.ini.local
+
+# --- Test artifacts ---
+playwright-report/
+test-results/
