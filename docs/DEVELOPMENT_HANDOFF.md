@@ -5,108 +5,67 @@
 
 ---
 
-## Handoff: Session 1 (Day 1)
+## Handoff: Session 2 (Day 2 Complete)
 **Date:** 2026-11-05  
-**Session:** Initial audit and planning  
+**Current State:** Day 2 complete; ready for Day 3.  
 
 ### Repository Location
 `/home/daxx69/.gemini/antigravity/scratch/opspulse`  
 **Branch:** `main`  
-**Last commit:** *(initial commit — to be made at end of Day 1)*
 
 ### Current Day and Phase
-- **Day:** 1 of 30
+- **Day:** 2 of 30 complete (FastAPI Skeleton & Tooling)
 - **Phase:** 1 — Foundation
-- **Roadmap position:** Day 1 complete (audit, planning, scaffolding)
+- **Roadmap Position:** Day 3 next (Database Foundation)
 
 ### Verified Completed Work
-- [x] Full spec.md read (1654 lines)
-- [x] Host environment audited
-- [x] Git repository initialized on `main` branch
-- [x] `.gitignore` created with all required exclusions
-- [x] `.env.example` created with all required env vars documented
-- [x] `README.md` created
-- [x] `spec.md` present in repo root
-- [x] All 8 required `docs/` files created
-- [x] 8 architectural decisions documented (DEC-001 through DEC-008)
-- [x] 2 known issues documented (KI-001, KI-002)
+- [x] Host environment audited (Ubuntu 26.04.1, Python 3.14.4, Docker 29.8.2, Docker Compose v5.6.0)
+- [x] Git repository initialized on `main` branch with clean history
+- [x] Directory structure matching spec Section 19 established
+- [x] Environment and secret protection (`.gitignore`, `.dockerignore`, `.env.example`)
+- [x] Multi-stage `Dockerfile` with Python 3.12-slim and `/opt/venv`
+- [x] Pinned `requirements.txt`
+- [x] Application settings with `pydantic-settings`
+- [x] Structured JSON logging with ISO 8601 UTC timestamps
+- [x] FastAPI application factory with lifespan and CORS
+- [x] Health check endpoints (`/api/v1/health`)
+- [x] Strict linting (`ruff`), typing (`mypy`), and testing (`pytest`)
+- [x] GitHub Actions CI workflow (`.github/workflows/ci.yml`)
+- [x] All 4 unit tests passing in isolated container
+- [x] Live container smoke test confirmed HTTP 200
 
-### Incomplete Work (carry to Day 2)
-- [ ] GitHub Actions CI workflow
-- [ ] FastAPI application skeleton
-- [ ] Backend virtual environment and requirements.txt
-- [ ] pytest, ruff, mypy configuration
-- [ ] Docker Compose stub (at minimum postgres + redis for dev)
+### Incomplete Work (Day 3 Target)
+- [ ] PostgreSQL integration via async SQLAlchemy (`asyncpg`) and sync SQLAlchemy (`psycopg2`)
+- [ ] Alembic migration environment configuration
+- [ ] Baseline database schemas (`users`, `agents`)
+- [ ] Migration up/down verification
+- [ ] Database readiness check in health endpoint
 
 ### Latest Test State
-No tests exist. No application code exists. Test framework not yet installed.
+- **Unit Tests:** 4 passed (`pytest tests/test_health.py`)
+- **Linter / Formatter:** 0 errors (`ruff check`, `ruff format --check`)
+- **Type Checker:** 0 errors across 16 source files (`mypy app/`)
+- **Container Smoke Test:** Verified HTTP 200 `{"status":"ok","version":"0.1.0"}`
 
 ### Active Issues
-- KI-001: Python 3.14 (above 3.12 minimum) — monitor wheel availability during Day 2 pip install
-- KI-002: pip not at system level — resolved with venv workaround
+- KI-001 (Host Python 3.14 lack of wheels): Fully resolved via containerized testing and deployment (`python:3.12-slim`).
 
 ### Recent Decisions
-- DEC-001: Monorepo with `main` branch
-- DEC-002: venv + ensurepip for Python dependency management
-- DEC-003: Async SQLAlchemy (asyncpg for FastAPI; psycopg2 for Celery)
-- DEC-004: bcrypt-hashed agent credentials, one-time reveal
-- DEC-005: JWT in HttpOnly cookie for browser users
-- DEC-006: Normalized child tables for disk/network metrics
-- DEC-007: Celery justified at MVP scale
-- DEC-008: JWT in query param for WebSocket auth
+- DEC-001 through DEC-008: Core architecture, data storage, auth, and queue decisions.
+- DEC-009: Containerized Python 3.12 development and testing strategy.
 
 ### Important Files to Inspect on Resume
-1. `spec.md` — full authoritative specification
-2. `docs/PROJECT_STATUS.md` — current completion state
-3. `docs/DECISION_LOG.md` — all architectural decisions
-4. `docs/KNOWN_ISSUES.md` — open risks
+1. `spec.md` — Authoritative specification
+2. `PROJECT_STATE.md` & `docs/PROJECT_STATUS.md` — Current completion status
+3. `backend/app/main.py` — Application entry point
+4. `backend/app/core/config.py` — Application configuration
+5. `docker-compose.yml` — Local service orchestration
 
-### Exact Next Task (Day 2)
-
-**Goal:** Create a running, testable FastAPI application skeleton.
-
-**Tasks:**
-1. Create `backend/` directory structure per spec Section 19
-2. Create `backend/requirements.txt` with pinned versions:
-   - `fastapi`, `uvicorn[standard]`, `pydantic`, `pydantic-settings`
-   - `sqlalchemy[asyncio]`, `asyncpg`, `alembic`
-   - `celery[redis]`, `redis`
-   - `passlib[bcrypt]`, `python-jose[cryptography]`
-   - `pytest`, `pytest-asyncio`, `httpx`
-   - `ruff`, `mypy`
-3. Create `backend/.venv` with `python3 -m venv backend/.venv --upgrade-deps`
-4. Install requirements inside venv
-5. Create `backend/app/main.py` — FastAPI app with lifespan
-6. Create `backend/app/core/config.py` — settings via pydantic-settings
-7. Create `backend/app/core/logging.py` — structured JSON logging
-8. Add `GET /health` and `GET /api/v1/health` endpoints
-9. Create `backend/pyproject.toml` with ruff + mypy config
-10. Create `backend/tests/test_health.py` — test health endpoint
-11. Run: `ruff check backend/`, `mypy backend/`, `pytest backend/tests/`
-12. Create `.github/workflows/ci.yml` — lint + type check + test on push
-13. Create `docker-compose.yml` stub with postgres + redis services
-
-**Acceptance Criteria:**
-- `uvicorn app.main:app` starts without errors
-- `GET /health` returns `{"status": "ok"}` with HTTP 200
-- `pytest backend/tests/` → at least 1 test passes
-- `ruff check backend/` → 0 errors
-- `mypy backend/app/` → 0 errors (or only expected issues with no stubs)
-
----
-
-### Environment Reference (for next session)
-
-| Tool | Version |
-|---|---|
-| OS | Ubuntu 26.04.1 LTS |
-| Python | 3.14.4 |
-| Node.js | v22.22.1 |
-| npm | 9.2.0 |
-| Docker | 29.8.2 |
-| Docker Compose | v5.6.0 |
-| Git | 2.53.0 |
-
----
-
-*Next session: Begin Day 2 — FastAPI skeleton. Read spec.md + this file + PROJECT_STATUS.md first.*
+### Exact Next Task (Day 3)
+1. Configure and start PostgreSQL in `docker-compose.yml`.
+2. Implement `backend/app/database/session.py` with `AsyncSession` and `get_db` dependency.
+3. Set up Alembic in `backend/alembic/` configured for `asyncpg`/`psycopg2`.
+4. Create `User` and `Agent` SQLAlchemy models.
+5. Generate and execute initial Alembic migration.
+6. Verify migration rollback and re-apply.
+7. Write tests for database session lifecycle and model constraints.

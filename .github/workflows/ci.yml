@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
+
+jobs:
+  # =============================================================================
+  # Backend: lint, type check, unit tests
+  # =============================================================================
+  backend-lint-and-test:
+    name: Backend — Lint, Type Check, Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Create virtual environment and install dependencies
+        run: |
+          python -m venv .venv --upgrade-deps
+          source .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Lint with ruff
+        run: |
+          source .venv/bin/activate
+          ruff check app/ tests/
+
+      - name: Format check with ruff
+        run: |
+          source .venv/bin/activate
+          ruff format --check app/ tests/
+
+      - name: Type check with mypy
+        run: |
+          source .venv/bin/activate
+          mypy app/
+        # Allow mypy failures as warnings until all stubs are in place
+        continue-on-error: true
+
+      - name: Run pytest (unit tests — no DB/Redis required)
+        run: |
+          source .venv/bin/activate
+          pytest tests/ -v --tb=short
+        env:
+          # Override settings so tests don't need real infrastructure
+          DEBUG: "true"
+          SECRET_KEY: "test-secret-key-at-least-32-chars-long"
+          POSTGRES_HOST: "localhost"
+          POSTGRES_PORT: "5432"
+          POSTGRES_DB: "opspulse_test"
+          POSTGRES_USER: "opspulse"
+          POSTGRES_PASSWORD: "test"
+          REDIS_URL: "redis://localhost:6379/0"
+
+  # =============================================================================
+  # Agent: lint, type check, unit tests (Day 4+ when agent code exists)
+  # =============================================================================
+  # agent-lint-and-test:
+  #   name: Agent — Lint, Type Check, Tests
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: agent
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: ${{ env.PYTHON_VERSION }}
+  #     - run: python -m venv .venv --upgrade-deps && source .venv/bin/activate && pip install -r requirements.txt
+  #     - run: source .venv/bin/activate && ruff check opspulse_agent/ tests/
+  #     - run: source .venv/bin/activate && pytest tests/
+
+  # =============================================================================
+  # Frontend: lint, type check, unit tests (Day 18+ when frontend code exists)
+  # =============================================================================
+  # frontend-lint-and-test:
+  #   name: Frontend — Lint, Type Check, Tests
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: frontend
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: npm
+  #         cache-dependency-path: frontend/package-lock.json
+  #     - run: npm ci
+  #     - run: npm run lint
+  #     - run: npm run type-check
+  #     - run: npm test
+

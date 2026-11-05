@@ -1,0 +1,48 @@
+# Backend Python dependencies
+# Pin major versions; patch versions resolved by pip.
+#
+# IMPORTANT: These packages require Python 3.12.
+# The host system runs Python 3.14 which lacks pre-built wheels for
+# pydantic-core and asyncpg. All installation and testing is done inside
+# Docker containers with python:3.12-slim. See KNOWN_ISSUES.md KI-001.
+# =============================================================================
+
+# --- Web framework ---
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# --- Validation and configuration ---
+pydantic==2.10.2
+pydantic-settings==2.6.1
+
+# --- Database (async for FastAPI handlers) ---
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.0
+
+# --- Database (sync for Celery workers and Alembic CLI) ---
+# psycopg2-binary works in Python 3.12 (Docker). No Python 3.14 wheel exists.
+psycopg2-binary==2.9.10
+
+# --- Task queue ---
+celery[redis]==5.4.0
+redis==5.2.0
+
+# --- Security ---
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+
+# --- Utilities ---
+python-multipart==0.0.17   # for form data (login form)
+httpx==0.28.0              # for testing async FastAPI
+
+# --- Testing ---
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+
+# --- Linting and type checking ---
+ruff==0.8.0
+mypy==1.13.0
+types-passlib==1.7.7.20240819
+types-python-jose==3.3.4.20240106

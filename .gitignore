@@ -86,3 +86,4 @@ alembic.ini.local
 # --- Test artifacts ---
 playwright-report/
 test-results/
+

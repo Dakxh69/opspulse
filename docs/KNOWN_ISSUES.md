@@ -1,49 +1,39 @@
 # OpsPulse — Known Issues
 
-> Track every unresolved issue. Close issues when fixed with resolution date.
+> Track every unresolved or resolved issue with root cause and workaround.
 
 ---
 
-## KI-001 — Python 3.14 Installed (Spec Requires 3.12+)
-**Severity:** LOW  
-**Status:** MONITORING  
+## KI-001 — Host Python 3.14 Lacks Binary Wheels for C-Extension Packages
+**Severity:** MEDIUM  
+**Status:** RESOLVED (via Containerization)  
 **Date Discovered:** 2026-11-05  
-**Module:** Environment / All Python code  
+**Resolution Date:** 2026-11-05  
+**Module:** Backend Environment / Tooling  
 
 ### Summary
-Ubuntu 26.04 ships with Python 3.14.4. The spec requires Python 3.12+. 3.14 satisfies the minimum requirement but is newer than what most package wheels are tested against.
+Ubuntu 26.04 ships with Python 3.14.4. Essential backend packages (`pydantic-core`, `asyncpg`, `psycopg2-binary`) fail to install on host because pre-built wheels do not exist for Python 3.14, and source builds require bleeding-edge rust/maturin tooling.
 
 ### Expected Behavior
-All backend and agent Python packages install cleanly and function correctly.
+`pip install -r requirements.txt` succeeds and builds all required wheels.
 
 ### Actual Behavior
-Potential risk: some packages (especially those with C extensions like `psycopg2-binary`) may not have wheels for Python 3.14 yet, requiring compilation from source, which may fail or be slow.
+`pip install` fails with `Failed to build asyncpg pydantic-core psycopg2-binary`.
 
-### Workaround
-- Use `asyncpg` instead of `psycopg2-binary` for the async backend (wheels more likely available).
-- For Celery sync workers, use `psycopg2-binary` and fall back to source build if needed.
-- Monitor `pip install` output during Day 2 for any failed wheel downloads.
-
-### Next Action
-Attempt `pip install -r requirements.txt` on Day 2. Document any failures here.
+### Resolution / Workaround
+Implemented multi-stage Docker build using official `python:3.12-slim` base image (`backend/Dockerfile`). All backend execution, tests, linting, and typing run inside this container using Docker Compose and Docker CLI (`docker run --rm -v $(pwd)/backend:/app opspulse-backend:test`). See DEC-009.
 
 ---
 
-## KI-002 — pip Not Available at System Level
+## KI-002 — Host Missing System-Level `pip`
 **Severity:** LOW  
-**Status:** RESOLVED (workaround in place)  
+**Status:** RESOLVED (via Virtualenv & Containerization)  
 **Date Discovered:** 2026-11-05  
-**Module:** Environment / Developer setup  
+**Resolution Date:** 2026-11-05  
+**Module:** Environment / Developer Setup  
 
 ### Summary
-`python3 -m pip` returns "No module named pip" on the host system. This is Ubuntu 26.04 policy (pip is not included in the base Python installation to avoid system-wide package pollution).
+`python3 -m pip` returned `No module named pip` on the Ubuntu 26.04 host.
 
-### Workaround
-Use `python3 -m venv <dir> --upgrade-deps` which bootstraps pip inside the virtual environment using `ensurepip`. All package operations happen inside the venv.
-
-### Resolution Date
-2026-11-05 — Workaround documented and confirmed working. `python3 -m venv --help` confirms venv module is available.
-
----
-
-*New issues will be appended above as discovered.*
+### Resolution
+Resolved by using `python3 -m venv --upgrade-deps` for venv creation where needed, and relying on containerized environments for the backend service.

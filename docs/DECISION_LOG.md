@@ -253,3 +253,35 @@ Query parameter is the simplest pattern that works reliably in browser–server 
 Frontend WebSocket hook must track token expiry and reconnect proactively.
 
 ---
+
+
+
+---
+
+## DEC-009 — Containerized Python 3.12 Development and Testing Strategy
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+The host machine runs Ubuntu 26.04 with Python 3.14.4. Key backend packages with compiled C extensions (`pydantic-core`, `asyncpg`, `psycopg2-binary`) do not yet provide pre-compiled wheels for Python 3.14 on Linux, and source builds require bleeding-edge rust/maturin ABI3 configurations that fail in standard pip environments.
+
+### Options
+1. Install Python 3.12 directly on the host using deadsnakes or building from source — modifies host system against spec guidelines.
+2. Build and run all backend runtime, tests, linters, and type checkers inside a reproducible `python:3.12-slim` Docker container.
+
+### Decision
+Option 2: Build and run backend development tasks inside a multi-stage Docker container based on `python:3.12-slim`.
+
+### Reason
+- Respects the constraint not to modify host software or system packages without necessity.
+- Matches the production deployment target where the backend runs in a Linux container.
+- Guarantees 100% reproducible dependencies and wheel compatibility across any developer machine.
+- Placing the container virtualenv in `/opt/venv` ensures that mounting the local project directory into `/app` does not shadow or collide with container binaries.
+
+### Trade-offs
+- Commands like `pytest` and `ruff` are invoked via Docker (`docker run --rm -v $(pwd)/backend:/app opspulse-backend:test ...`).
+- Fast and reliable once the base image is built.
+
+### Consequences
+- CI and local dev commands will execute via Docker or Python 3.12.
+- Host agent (when built on Day 4) uses pure Python standard libraries or wheels available for Python 3.14 (psutil has wheels).

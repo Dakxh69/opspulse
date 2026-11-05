@@ -28,3 +28,34 @@ Day 1 is the planning and scaffolding day. No application code or tests are expe
 ---
 
 *Test runs will be appended here as development progresses.*
+
+
+
+---
+
+## Test Run: TR-002
+**Date:** 2026-11-05  
+**Run ID:** Day-2-fastapi-skeleton  
+**Phase:** Phase 1 — Foundation  
+
+### Commands
+```bash
+docker run --rm -v $(pwd)/backend:/app opspulse-backend:test ruff check app/ tests/
+docker run --rm -v $(pwd)/backend:/app opspulse-backend:test ruff format --check app/ tests/
+docker run --rm -v $(pwd)/backend:/app opspulse-backend:test mypy app/
+docker run --rm -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+curl http://localhost:8000/api/v1/health
+```
+
+### Result
+- **Passed:** 4 unit tests (`test_health_returns_200`, `test_health_returns_ok_status`, `test_health_returns_version`, `test_health_response_schema`)
+- **Failed:** 0
+- **Skipped:** 0
+- **Not collected:** 0
+- **Linter Status:** Ruff check clean (0 errors)
+- **Formatter Status:** Ruff format clean (18 files checked)
+- **Type Checker Status:** Mypy clean (0 errors across 16 source files)
+- **Live Smoke Test:** HTTP 200 `{"status":"ok","version":"0.1.0"}`
+
+### Notes
+All tests executed inside the Python 3.12 container environment with full isolation.
