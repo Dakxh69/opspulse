@@ -44,3 +44,4 @@ if __name__ == "__main__":
     parser.add_argument("--hold", type=float, default=15.0, help="Hold duration in seconds")
     args = parser.parse_args()
     run_memory_pressure(megabytes=args.mb, hold_seconds=args.hold)
+

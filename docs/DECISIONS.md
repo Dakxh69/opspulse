@@ -698,3 +698,51 @@ Host resource generators can easily run away, fill disk space, or trigger kernel
 
 ### Decision
 All simulation scripts enforce strict maximum memory/file caps and hard execution timeouts, with all allocations and files cleaned up inside guaranteed `try...finally` blocks.
+
+---
+
+## DEC-037 — Fail-Fast 503 Ingestion Semantics for Broker Outages
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+If the queue broker (Redis) is down, an ingestion endpoint might swallow errors or return 500 without informing the agent whether the data was saved.
+
+### Decision
+Ingestion routes catch queue transport exceptions and return HTTP 503 with a structured retry message. This triggers the agent's exponential backoff and ring buffer retention, guaranteeing zero metric loss during broker downtime.
+
+---
+
+## DEC-038 — Dual-Layer Frontend Verification with Vitest and Playwright
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Component unit tests verify UI logic in isolation with mocked APIs, but cannot catch browser-specific layout, routing, or bundling bugs.
+
+### Decision
+Standardize on Vitest with JSDOM for fast component assertions, complemented by headless Playwright browser tests driven by system Google Chrome for authentic routing and DOM verification.
+
+---
+
+## DEC-039 — Strict Warning Hygiene in Automated CI/Test Pipelines
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Unfiltered third-party library warnings drown out actual application regressions and decrease developer confidence.
+
+### Decision
+Configure explicit warning filters in `pyproject.toml` scoped to external packages (`jose.*`, `httpx.*`), enforcing that internal code remains completely free of deprecation patterns.
+
+---
+
+## DEC-040 — Production Nginx Edge Routing with Native WebSocket Forwarding
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+In local development, Vite handles reverse proxying. In production containerization, a dedicated, battle-tested edge web server is required.
+
+### Decision
+Deploy Nginx in the frontend container configured to proxy both standard REST HTTP calls and persistent full-duplex WebSocket connections (`/api/v1/ws`) to the backend with appropriate `Upgrade` and `Connection` headers.

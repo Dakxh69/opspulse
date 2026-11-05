@@ -43,3 +43,4 @@ Day 21 delivers the interactive incident management dashboard per spec Section 1
 
 ## 5. Next Steps
 - Day 22: Alert rules UI configuration and authenticated real-time WebSockets.
+

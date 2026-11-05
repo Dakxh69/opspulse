@@ -52,3 +52,4 @@ if __name__ == "__main__":
     parser.add_argument("--workers", type=int, default=None, help="Process count")
     args = parser.parse_args()
     run_cpu_spike(duration_seconds=args.duration, workers=args.workers)
+

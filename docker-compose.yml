@@ -1,17 +1,10 @@
-# OpsPulse — Docker Compose
-# Local development orchestration.
-# Production hardening (secrets, TLS, resource limits) is a Day 28 task.
-#
-# Usage:
-#   docker compose up -d          # start all services
-#   docker compose logs -f        # stream all logs
-#   docker compose down -v        # stop and remove volumes (data loss!)
-#   docker compose down           # stop, preserve volumes
+# OpsPulse — Docker Compose Production & Local Deployment Specification
+# Orchestrates all multi-service distributed monitoring tiers per spec Section 18 & Section 23.
 
 services:
 
   # ===========================================================================
-  # PostgreSQL — primary database
+  # PostgreSQL — Primary relational datastore (PostgreSQL 17)
   # ===========================================================================
   postgres:
     image: postgres:17-alpine
@@ -33,7 +26,7 @@ services:
     restart: unless-stopped
 
   # ===========================================================================
-  # Redis — message broker for Celery + refresh token revocation
+  # Redis — Task queue broker and caching (Redis 7)
   # ===========================================================================
   redis:
     image: redis:7-alpine
@@ -52,75 +45,112 @@ services:
     restart: unless-stopped
 
   # ===========================================================================
-  # FastAPI Backend — REST API + WebSocket gateway
-  # (Implemented from Day 2 onwards; placeholder until Dockerfile exists)
+  # FastAPI Backend — REST Ingestion, Triage APIs & WebSocket Gateway
   # ===========================================================================
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: opspulse-backend
-  #   env_file: .env
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   restart: unless-stopped
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: opspulse-backend
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-opspulse}
+      POSTGRES_USER: ${POSTGRES_USER:-opspulse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      SECRET_KEY: ${SECRET_KEY:-ops-pulse-production-secret-key-32chars-min}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:80,http://localhost:3000}
+      DEBUG: "false"
+      LOG_LEVEL: "INFO"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/v1/health\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
 
   # ===========================================================================
-  # Celery Worker — metric processing, alert evaluation, scheduled tasks
-  # (Enabled from Day 10 onwards)
+  # Celery Worker — Asynchronous metric ingestion & alert engine evaluation
   # ===========================================================================
-  # worker:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: opspulse-worker
-  #   command: celery -A app.workers.celery_app worker --loglevel=info
-  #   env_file: .env
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   restart: unless-stopped
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: opspulse-worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-opspulse}
+      POSTGRES_USER: ${POSTGRES_USER:-opspulse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      SECRET_KEY: ${SECRET_KEY:-ops-pulse-production-secret-key-32chars-min}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
 
   # ===========================================================================
-  # Celery Beat — scheduled tasks (heartbeat checks, retention cleanup)
-  # (Enabled alongside worker from Day 10 onwards)
+  # Celery Beat — Scheduled telemetry downsampling and heartbeat evaluation
   # ===========================================================================
-  # beat:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: opspulse-beat
-  #   command: celery -A app.workers.celery_app beat --loglevel=info
-  #   env_file: .env
-  #   depends_on:
-  #     - worker
-  #   restart: unless-stopped
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: opspulse-beat
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-opspulse}
+      POSTGRES_USER: ${POSTGRES_USER:-opspulse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      SECRET_KEY: ${SECRET_KEY:-ops-pulse-production-secret-key-32chars-min}
+    depends_on:
+      - worker
+    restart: unless-stopped
 
   # ===========================================================================
-  # React Frontend — dashboard
-  # (Enabled from Day 18 onwards)
+  # React Frontend — Nginx reverse-proxy & Single-Page Application
   # ===========================================================================
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: opspulse-frontend
-  #   ports:
-  #     - "5173:80"
-  #   depends_on:
-  #     - backend
-  #   restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: opspulse-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
   pgdata:
     driver: local
   redis-data:
     driver: local
-

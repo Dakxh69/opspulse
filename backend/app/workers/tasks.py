@@ -270,18 +270,35 @@ def downsample_metrics(window_minutes: int = 60) -> dict[str, int]:
             if cpu_agg[3] and cpu_agg[3] > 0:
                 # Truncate timestamp to 5-minute bucket
                 bucket_start = now.replace(minute=(now.minute // 5) * 5, second=0, microsecond=0)
-                agg = MetricAggregate(
-                    agent_id=agent_id,
-                    metric_key="cpu.usage_percent",
-                    dimension=None,
-                    bucket_start=bucket_start,
-                    bucket_size=bucket_size,
-                    min_value=float(cpu_agg[0]),
-                    max_value=float(cpu_agg[1]),
-                    avg_value=float(cpu_agg[2]),
-                    sample_count=int(cpu_agg[3]),
-                )
-                session.merge(agg)
+                existing_agg = session.execute(
+                    select(MetricAggregate).where(
+                        MetricAggregate.agent_id == agent_id,
+                        MetricAggregate.metric_key == "cpu.usage_percent",
+                        MetricAggregate.dimension.is_(None),
+                        MetricAggregate.bucket_start == bucket_start,
+                        MetricAggregate.bucket_size == bucket_size,
+                    )
+                ).scalar_one_or_none()
+
+                if existing_agg:
+                    existing_agg.min_value = float(cpu_agg[0])
+                    existing_agg.max_value = float(cpu_agg[1])
+                    existing_agg.avg_value = float(cpu_agg[2])
+                    existing_agg.sample_count = int(cpu_agg[3])
+                else:
+                    agg = MetricAggregate(
+                        id=uuid.uuid4(),
+                        agent_id=agent_id,
+                        metric_key="cpu.usage_percent",
+                        dimension=None,
+                        bucket_start=bucket_start,
+                        bucket_size=bucket_size,
+                        min_value=float(cpu_agg[0]),
+                        max_value=float(cpu_agg[1]),
+                        avg_value=float(cpu_agg[2]),
+                        sample_count=int(cpu_agg[3]),
+                    )
+                    session.add(agg)
                 aggregates_created += 1
 
         session.commit()

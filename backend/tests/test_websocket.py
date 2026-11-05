@@ -53,3 +53,4 @@ def test_websocket_rejection_without_token() -> None:
         with client.websocket_connect("/api/v1/ws"):
             pass
     assert exc_info.value.code == 1008
+

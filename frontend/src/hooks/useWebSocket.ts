@@ -79,3 +79,4 @@ export function useWebSocket(onEvent?: (event: WebSocketEvent) => void) {
 
   return { status };
 }
+

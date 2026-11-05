@@ -287,3 +287,4 @@ async def list_recovery_executions(
     )
     res = await db.execute(stmt)
     return list(res.scalars().all())
+

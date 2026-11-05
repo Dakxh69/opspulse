@@ -46,3 +46,4 @@ Day 23 implements the controlled recovery policy and remediation workflow per sp
 
 ## 5. Next Steps
 - Day 24: Docker simulation environments, bounded failure injection scenarios, and pipeline verification.
+

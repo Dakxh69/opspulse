@@ -315,3 +315,77 @@ cd frontend && npm run build
 - **Frontend Build Status:**
   - `tsc`: 0 errors
   - `vite build`: Clean production bundle (3.75s)
+
+---
+
+## Test Run: TR-007
+**Date:** 2026-11-05  
+**Run ID:** Days-25-to-30-final-milestone  
+**Phase:** Phase 7 (Failure Testing) & Phase 8 (Hardening, Deployment, Benchmarking, Finalization)  
+
+### Commands
+```bash
+# Agent tests
+cd agent && .venv/bin/pytest -v
+
+# Backend tests in Docker
+docker run --rm --network opspulse_default \
+  -e POSTGRES_HOST=opspulse-postgres \
+  -e POSTGRES_PASSWORD=CHANGE_ME \
+  -e REDIS_HOST=opspulse-redis \
+  -e TESTING=true \
+  -v $(pwd)/backend:/app \
+  opspulse-backend:test pytest -v
+
+# Frontend unit & component tests
+cd frontend && npm test
+
+# Playwright E2E browser tests
+cd frontend && npm run test:e2e
+
+# Frontend production build
+cd frontend && npm run build
+
+# Performance benchmarks
+docker run --rm --network opspulse_default \
+  -e PYTHONPATH=/app \
+  -e POSTGRES_HOST=opspulse-postgres \
+  -e POSTGRES_PASSWORD=CHANGE_ME \
+  -e REDIS_HOST=opspulse-redis \
+  -e TESTING=true \
+  -v $(pwd)/backend:/app \
+  -v $(pwd)/agent:/app/agent \
+  -v $(pwd)/simulator:/app/simulator \
+  opspulse-backend:test python simulator/scripts/benchmark.py
+```
+
+### Result
+- **Agent Unit Tests:** 31 passed in 0.43s (100% pass)
+- **Backend Tests:** 48 passed in 25.67s (100% pass)
+  - `test_failure_scenarios.py` (4 passed: Redis 503 fail-fast, PostgreSQL probe, agent disconnection, worker retry)
+  - `test_e2e_pipeline.py` (2 passed: ingestion query pipeline, alert-to-incident RBAC flow)
+  - `test_recovery.py` (1 passed)
+  - `test_simulation.py` (1 passed)
+  - `test_websocket.py` (2 passed)
+  - `test_alert_evaluation.py` (5 passed)
+  - `test_incidents.py` (3 passed)
+  - `test_agent_health.py` (2 passed)
+  - `test_agents.py` (1 passed)
+  - `test_alert_rules.py` (2 passed)
+  - `test_audit.py` (2 passed)
+  - `test_auth.py` (5 passed)
+  - `test_database.py` (4 passed)
+  - `test_health.py` (4 passed)
+  - `test_ingest_api.py` (4 passed)
+  - `test_metrics_persistence.py` (3 passed)
+  - `test_queue_worker.py` (3 passed)
+- **Frontend Component Tests:** 3 suites passed in 1.47s (Overview, Incidents, Alert Rules)
+- **Playwright Headless Browser Tests:** 1 suite passed in 2.70s (Core navigation flow with Google Chrome)
+- **Total Automated Tests Passing:** **83 automated tests (100% pass rate, 0 failures)**
+- **Frontend Production Build:** Clean bundle generated in 3.51s (0 TypeScript errors)
+- **Benchmarking Results:**
+  - Agent Memory RSS: 32.52 MB (Target: < 35 MB)
+  - Agent Sampling Cycle: 0.97 ms (Target: < 50 ms)
+  - Queue Processing p95: 10.00 ms (Target: < 500 ms)
+  - End-to-End Alert Detection: 27.58 ms (Target: < 15,000 ms)
+  - Ingestion Throughput: 843.7 samples/s (Target: > 50 samples/s)

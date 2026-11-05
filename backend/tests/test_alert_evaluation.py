@@ -260,6 +260,10 @@ def test_deduplication_auto_resolution_and_cooldown() -> None:
     4. Cooldown suppression preventing flapping / immediate re-alerting
     """
     with SyncSessionLocal() as session:
+        # Clean any leftover rules to guarantee test isolation
+        session.query(AlertRule).delete()
+        session.commit()
+
         agent = Agent(
             id=uuid.uuid4(),
             name="test-agent-lifecycle",

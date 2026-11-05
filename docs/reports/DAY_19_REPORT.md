@@ -45,3 +45,4 @@ Day 19 delivers the primary Overview dashboard for OpsPulse per spec Section 15 
 
 ## 5. Next Steps
 - Day 20: Infrastructure inventory listing and detailed per-machine Recharts telemetry visualization.
+

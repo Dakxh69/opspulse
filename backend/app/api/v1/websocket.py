@@ -59,3 +59,4 @@ async def websocket_endpoint(
     except Exception as exc:
         logger.error(f"WebSocket unexpected error: {exc}")
         ws_manager.disconnect(websocket)
+

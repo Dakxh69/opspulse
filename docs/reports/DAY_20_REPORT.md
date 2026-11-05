@@ -43,3 +43,4 @@ Day 20 delivers the host inventory and per-machine metric visualization interfac
 
 ## 5. Next Steps
 - Day 21: Incident management dashboard, multi-attribute filters, and live triage actions.
+

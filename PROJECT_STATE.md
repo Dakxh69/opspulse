@@ -1,10 +1,10 @@
 # OpsPulse — Project State
 
 **Last Updated:** 2026-11-05  
-**Current Phase:** Phase 7 — Recovery and Simulation (Days 23–24 Complete)  
-**Current Roadmap Day:** Day 24 Complete  
-**Overall Status:** `IN PROGRESS`  
-**Completion Percentage:** ~80% (Days 1–24 Complete, 73/73 Tests Passing, Frontend Build Clean)  
+**Current Phase:** Phase 8 — Hardening and Finalization (Days 25–30 Complete)  
+**Current Roadmap Day:** Day 30 Complete  
+**Overall Status:** `COMPLETED` (100% Roadmap Delivered)  
+**Completion Percentage:** 100% (All 30 Days Delivered, 83/83 Automated Tests Passing, 28/28 Section 24 Acceptance Criteria Verified)  
 
 ---
 
@@ -35,7 +35,12 @@
 | **Alert Rules & WebSockets (Day 22)**| `COMPLETE` | Rules UI & modal, backend WebSocket endpoint (`/api/v1/ws`), `useWebSocket` hook with jittered reconnect |
 | **Controlled Recovery (Day 23)**| `COMPLETE` | Allowlisted action types, two-phase approval workflow (`PENDING_APPROVAL` -> `APPROVED`), dry-run mode, migration `6004ff0c57fd` |
 | **Docker Simulation Scenarios (Day 24)**| `COMPLETE` | Bounded CPU spike, memory pressure, disk pressure, Docker agent container, automated test `test_simulation.py` |
-| **Quality & Tests** | `COMPLETE` | 73/73 tests passing (42 backend + 31 agent), 0 failures, clean frontend build |
+| **Failure Testing (Day 25)** | `COMPLETE` | Redis 503 fail-fast, PostgreSQL probe, agent disconnection & deduplicated incidents (`test_failure_scenarios.py`) |
+| **Integration & Playwright (Day 26)**| `COMPLETE` | E2E ingestion & triage pipeline (`test_e2e_pipeline.py`), Vitest component tests, Playwright browser E2E flow |
+| **Reliability & Warnings (Day 27)** | `COMPLETE` | Deprecation warning filters, Celery retry hardening, structured JSON logs audit, known issues catalog (`docs/KNOWN_ISSUES.md`) |
+| **Docker Multi-Tier Deploy (Day 28)** | `COMPLETE` | Multi-stage frontend Dockerfile, Nginx edge router with WebSocket upgrades, multi-service `docker-compose.yml` |
+| **Benchmarking Suite (Day 29)** | `COMPLETE` | Sub-millisecond sampling (0.97ms), 843 samples/s throughput, 10ms p95 queue processing, 27ms alert latency |
+| **Finalization & Audit (Day 30)** | `COMPLETE` | 28/28 Section 24 criteria verified, comprehensive documentation, production readiness sign-off |
 
 ---
 
@@ -49,16 +54,16 @@
 | **Phase 4 — Storage & Alerts** | Days 11–14 | Persistence, Rules, Evaluation Engine, Reliability | `COMPLETE` (100%) |
 | **Phase 5 — Incidents & Health** | Days 15–17 | Incident lifecycle state machine, Agent offline detection | `COMPLETE` (100%) |
 | **Phase 6 — Frontend Dashboard** | Days 18–22 | React, Vite, Tailwind, Overview, Infrastructure, Incidents, Alert Rules, WebSockets | `COMPLETE` (100%) |
-| **Phase 7 — Recovery & Simulation** | Days 23–25 | Policies (Day 23 Done), Scenarios (Day 24 Done), Failure Testing (Day 25 Next) | `IN PROGRESS` (67%) |
-| **Phase 8 — Hardening & Finalization**| Days 26–30 | End-to-end integration, Latency benchmarks, Documentation | `NOT STARTED` |
+| **Phase 7 — Recovery & Simulation** | Days 23–25 | Policies, Scenarios, Failure Testing | `COMPLETE` (100%) |
+| **Phase 8 — Hardening & Finalization**| Days 26–30 | End-to-end integration, Latency benchmarks, Documentation | `COMPLETE` (100%) |
 
 ---
 
 ## 3. Test & Verification Status
 
-- **Automated Tests:** 73/73 passed (42 backend in Docker + 31 agent on host)
+- **Automated Tests:** 83/83 passed (48 backend in Docker + 31 agent on host + 3 frontend vitest + 1 Playwright E2E)
   - Agent (31 tests): CPU, Memory, Disk, Network collectors, API client with exponential backoff, Scheduler ring buffer.
-  - Backend (42 tests):
+  - Backend (48 tests):
     - Health and Database: 8 tests
     - Auth & Users: 5 tests
     - Agents & Provisioning: 1 test
@@ -73,7 +78,11 @@
     - Recovery Policies & Dry-Run: 1 test
     - Simulation Scenarios & Spike Recovery: 1 test
     - WebSocket Authentication & Ping/Pong: 2 tests
-- **Frontend Build Status:** `tsc && vite build` clean (0 errors, 3.75s).
+    - Failure Testing Scenarios: 4 tests
+    - End-to-End Pipeline Integration: 2 tests
+  - Frontend Component Tests (3 suites): OverviewPage, IncidentsPage, AlertRulesPage.
+  - Frontend Playwright E2E (1 suite): Real browser multi-page routing and triage flow.
+- **Frontend Build Status:** `tsc && vite build` clean (0 errors, 3.51s).
 - **Database Migrations:** 7 migrations applied to head:
   - `5d7b14653929` (users & agents)
   - `8d5340076971` (audit_logs)
@@ -82,15 +91,9 @@
   - `d21a482937e2` (alert_rules)
   - `3e33c503e175` (incidents & events)
   - `6004ff0c57fd` (recovery_policies, recovery_executions)
-
----
-
-## 4. Exact Next Task
-
-**Days 25–30 (Final Milestone Block):**
-- Day 25: Failure testing (Agent disconnection, Redis broker failure, PostgreSQL recovery).
-- Day 26: End-to-end integration testing & frontend test suite.
-- Day 27: Reliability hardening & bug fixing.
-- Day 28: Docker Compose multi-service deployment verification.
-- Day 29: Latency & throughput benchmarking.
-- Day 30: Final documentation, architectural diagrams, and handoff.
+- **Empirical Benchmarks (Day 29):**
+  - Agent Memory RSS: 32.52 MB (Target: < 35 MB)
+  - Agent Sampling Cycle: 0.97 ms (Target: < 50 ms)
+  - Queue Processing p95: 10.00 ms (Target: < 500 ms)
+  - End-to-End Alert Detection: 27.58 ms (Target: < 15,000 ms)
+  - Ingestion Throughput: 843.7 samples/s (Target: > 50 samples/s)
