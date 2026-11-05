@@ -45,3 +45,4 @@ Day 16 implements the operational lifecycle state machine and REST endpoints for
 
 ## 5. Next Steps
 - Day 17: Agent health monitoring and offline detection.
+

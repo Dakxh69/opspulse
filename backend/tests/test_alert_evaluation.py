@@ -363,3 +363,4 @@ def test_deduplication_auto_resolution_and_cooldown() -> None:
 
         incidents3 = AlertEngine.evaluate_agent(session, agent.id, now=t3)
         assert len(incidents3) == 0  # Suppressed by cooldown!
+

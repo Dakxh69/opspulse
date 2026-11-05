@@ -46,3 +46,4 @@ Day 15 implements the database schema, relational structure, and creation servic
 
 ## 5. Next Steps
 - Day 16: Incident lifecycle state machine, transitions, and API endpoints.
+

@@ -626,3 +626,75 @@ During local development, the frontend runs on port 5173 while FastAPI runs on p
 
 ### Decision
 Configured Vite dev server proxy to forward `/api` requests directly to `http://localhost:8000`, ensuring cookies and sessions work seamlessly in development without CORS complexity.
+
+---
+
+## DEC-031 — Client-Side Stat Aggregation from Normalized APIs
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Monolithic overview endpoints couple backend database queries to specific UI widget layouts.
+
+### Decision
+Frontend queries `/agents` and `/incidents` concurrently via `Promise.all` and aggregates fleet counts on the client, maintaining lean, decoupled REST APIs.
+
+---
+
+## DEC-032 — High-Density Area and Line Charts via Recharts
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Raw tabular metric data makes identifying CPU spikes or memory leaks slow and tedious.
+
+### Decision
+Integrated Recharts responsive vector charts (`AreaChart`, `LineChart`) styled with custom SVG gradients matching the dark dashboard theme.
+
+---
+
+## DEC-033 — Sticky Master-Detail Incident Triaging Layout
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Navigating away to separate pages for each incident slows down triage during multi-host outages.
+
+### Decision
+Implemented an inline master-detail slide-in panel that allows operators to inspect and resolve multiple alerts without losing their filter context or list scroll position.
+
+---
+
+## DEC-034 — Jittered Exponential Backoff for Real-time WebSockets
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Server restarts or network blips can cause hundreds of browser tabs to reconnect simultaneously, creating a thundering herd.
+
+### Decision
+Frontend hook uses randomized exponential backoff with a 15-second cap and graceful fallback to regular REST polling.
+
+---
+
+## DEC-035 — Two-Phase Approval and Dry-Run Guardrails for Remediation
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Triggering remediation actions during outages must avoid exacerbating service failures through unchecked automated commands.
+
+### Decision
+Implemented a two-phase approval workflow where Operators can request remediation, but actions flagged with `requires_approval` pause in `PENDING_APPROVAL` until explicitly authorized by an Administrator. All actions support safe `dry_run` verification.
+
+---
+
+## DEC-036 — Strictly Bounded and Self-Cleaning Failure Injections
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Host resource generators can easily run away, fill disk space, or trigger kernel Out-Of-Memory (OOM) panics.
+
+### Decision
+All simulation scripts enforce strict maximum memory/file caps and hard execution timeouts, with all allocations and files cleaned up inside guaranteed `try...finally` blocks.

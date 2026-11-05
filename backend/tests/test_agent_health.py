@@ -159,3 +159,4 @@ async def test_agent_auto_recovery_on_heartbeat() -> None:
         # Verify AUTO_CLEARED event logged
         events = incident_refreshed.events
         assert any(e.event_type == IncidentEventType.AUTO_CLEARED for e in events)
+

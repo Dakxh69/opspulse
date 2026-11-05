@@ -1,10 +1,10 @@
 # OpsPulse — Project State
 
 **Last Updated:** 2026-11-05  
-**Current Phase:** Phase 6 — Frontend (In Progress)  
-**Current Roadmap Day:** Day 18 (Frontend Setup) Complete  
+**Current Phase:** Phase 7 — Recovery and Simulation (Days 23–24 Complete)  
+**Current Roadmap Day:** Day 24 Complete  
 **Overall Status:** `IN PROGRESS`  
-**Completion Percentage:** ~60% (Days 1–18 Complete, 69/69 Tests Passing, Frontend Build Clean)  
+**Completion Percentage:** ~80% (Days 1–24 Complete, 73/73 Tests Passing, Frontend Build Clean)  
 
 ---
 
@@ -29,7 +29,13 @@
 | **Incident Lifecycle (Day 16)**| `COMPLETE` | State machine (`OPEN -> ACKNOWLEDGED -> RESOLVED -> REOPENED`), investigation notes, event timeline, RBAC |
 | **Agent Health Monitor (Day 17)**| `COMPLETE` | Celery task `monitor_agent_health` (ONLINE -> DEGRADED -> OFFLINE), offline incident deduplication, heartbeat auto-recovery |
 | **Frontend Setup (Day 18)**| `COMPLETE` | React 18, Vite 6, Tailwind CSS 3, TypeScript 5, dashboard layout, sidebar navigation, production build verified |
-| **Quality & Tests** | `COMPLETE` | 69/69 tests passing (38 backend + 31 agent), 0 failures, clean frontend build |
+| **Overview Dashboard (Day 19)**| `COMPLETE` | Live fleet metrics, pipeline status beacon, recent incident activity table |
+| **Infrastructure & Charts (Day 20)**| `COMPLETE` | Host inventory table, Recharts CPU/Memory AreaCharts, Network LineCharts, Disk progress bars |
+| **Incident Dashboard (Day 21)**| `COMPLETE` | Master-detail sticky triage panel, one-click state transitions, notes, event timeline history |
+| **Alert Rules & WebSockets (Day 22)**| `COMPLETE` | Rules UI & modal, backend WebSocket endpoint (`/api/v1/ws`), `useWebSocket` hook with jittered reconnect |
+| **Controlled Recovery (Day 23)**| `COMPLETE` | Allowlisted action types, two-phase approval workflow (`PENDING_APPROVAL` -> `APPROVED`), dry-run mode, migration `6004ff0c57fd` |
+| **Docker Simulation Scenarios (Day 24)**| `COMPLETE` | Bounded CPU spike, memory pressure, disk pressure, Docker agent container, automated test `test_simulation.py` |
+| **Quality & Tests** | `COMPLETE` | 73/73 tests passing (42 backend + 31 agent), 0 failures, clean frontend build |
 
 ---
 
@@ -42,17 +48,17 @@
 | **Phase 3 — Identity & Ingestion** | Days 8–10 | Agent provisioning, Ingest endpoint, Redis/Celery queue | `COMPLETE` (100%) |
 | **Phase 4 — Storage & Alerts** | Days 11–14 | Persistence, Rules, Evaluation Engine, Reliability | `COMPLETE` (100%) |
 | **Phase 5 — Incidents & Health** | Days 15–17 | Incident lifecycle state machine, Agent offline detection | `COMPLETE` (100%) |
-| **Phase 6 — Frontend Dashboard** | Days 18–22 | React setup (Day 18 Done), Overview (Day 19), Infrastructure (Day 20), Incidents (Day 21), Alerts & WebSockets (Day 22) | `IN PROGRESS` (20%) |
-| **Phase 7 — Recovery & Simulation** | Days 23–25 | Allowlisted remediation, CPU/RAM/Disk failure injection | `NOT STARTED` |
+| **Phase 6 — Frontend Dashboard** | Days 18–22 | React, Vite, Tailwind, Overview, Infrastructure, Incidents, Alert Rules, WebSockets | `COMPLETE` (100%) |
+| **Phase 7 — Recovery & Simulation** | Days 23–25 | Policies (Day 23 Done), Scenarios (Day 24 Done), Failure Testing (Day 25 Next) | `IN PROGRESS` (67%) |
 | **Phase 8 — Hardening & Finalization**| Days 26–30 | End-to-end integration, Latency benchmarks, Documentation | `NOT STARTED` |
 
 ---
 
 ## 3. Test & Verification Status
 
-- **Automated Tests:** 69/69 passed (38 backend in Docker + 31 agent on host)
+- **Automated Tests:** 73/73 passed (42 backend in Docker + 31 agent on host)
   - Agent (31 tests): CPU, Memory, Disk, Network collectors, API client with exponential backoff, Scheduler ring buffer.
-  - Backend (38 tests):
+  - Backend (42 tests):
     - Health and Database: 8 tests
     - Auth & Users: 5 tests
     - Agents & Provisioning: 1 test
@@ -64,20 +70,27 @@
     - Alert Evaluation Engine: 5 tests
     - Incident Lifecycle & RBAC: 3 tests
     - Agent Health & Recovery: 2 tests
-- **Frontend Build Status:** `npm run build` cleanly passed with 0 TypeScript/Vite errors.
-- **Database Migrations:** 6 migrations applied to head:
+    - Recovery Policies & Dry-Run: 1 test
+    - Simulation Scenarios & Spike Recovery: 1 test
+    - WebSocket Authentication & Ping/Pong: 2 tests
+- **Frontend Build Status:** `tsc && vite build` clean (0 errors, 3.75s).
+- **Database Migrations:** 7 migrations applied to head:
   - `5d7b14653929` (users & agents)
   - `8d5340076971` (audit_logs)
   - `95e7fdc22d79` (processed_batches)
   - `4ae56bb50e96` (metrics & aggregates)
   - `d21a482937e2` (alert_rules)
   - `3e33c503e175` (incidents & events)
+  - `6004ff0c57fd` (recovery_policies, recovery_executions)
 
 ---
 
 ## 4. Exact Next Task
 
-**Day 19 — Overview Page:**
-1. Connect React Overview page to live backend APIs (`GET /api/v1/agents`, `GET /api/v1/incidents`).
-2. Display live agent count (Online / Degraded / Offline) and active incidents summary.
-3. Author frontend API client service and component tests.
+**Days 25–30 (Final Milestone Block):**
+- Day 25: Failure testing (Agent disconnection, Redis broker failure, PostgreSQL recovery).
+- Day 26: End-to-end integration testing & frontend test suite.
+- Day 27: Reliability hardening & bug fixing.
+- Day 28: Docker Compose multi-service deployment verification.
+- Day 29: Latency & throughput benchmarking.
+- Day 30: Final documentation, architectural diagrams, and handoff.

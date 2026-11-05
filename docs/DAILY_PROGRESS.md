@@ -678,3 +678,127 @@ Implemented the memory telemetry subsystem in `agent/opspulse_agent/collectors/m
 - `frontend/src/main.tsx`
 - `frontend/.gitignore`
 - `docs/reports/DAY_18_REPORT.md`
+
+---
+
+## Day 19 — Overview Dashboard: Live Fleet Health & Activity Table
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 6 In Progress)
+
+### Objectives
+- [x] Implement centralized frontend API client (`src/services/api.ts`)
+- [x] Connect Overview page to live backend REST endpoints
+- [x] Display agent fleet statistics (Total, Online, Degraded, Offline)
+- [x] Display active and critical operational breach counters
+- [x] Render recent incident activity table with severity badges and manage links
+- [x] Background polling and manual refresh controls
+
+### Files Changed
+- `frontend/src/services/api.ts`
+- `frontend/src/pages/OverviewPage.tsx`
+- `docs/reports/DAY_19_REPORT.md`
+
+---
+
+## Day 20 — Infrastructure & Machine Details: Host Inventory & Recharts Graphs
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 6 In Progress)
+
+### Objectives
+- [x] Implement fleet inventory listing in `InfrastructurePage.tsx`
+- [x] Display pulsating health beacons and relative heartbeat age
+- [x] Build `MachineDetailPage.tsx` with Recharts vector charts
+- [x] Plot CPU AreaChart, Memory AreaChart, Network LineChart, and Disk progress bars
+- [x] Support time range filtering (15m, 30m, 1h, 2h)
+- [x] Register dynamic route `/infrastructure/:agentId`
+
+### Files Changed
+- `frontend/src/pages/InfrastructurePage.tsx`
+- `frontend/src/pages/MachineDetailPage.tsx`
+- `frontend/src/App.tsx`
+- `docs/reports/DAY_20_REPORT.md`
+
+---
+
+## Day 21 — Incident Management: Master-Detail Triage & Lifecycle Actions
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 6 In Progress)
+
+### Objectives
+- [x] Implement multi-attribute filtering (Status: ALL/OPEN/ACK/RESOLVED, Severity: ALL/CRITICAL/WARNING)
+- [x] Build sticky master-detail triage layout in `IncidentsPage.tsx`
+- [x] Connect one-click lifecycle actions (Acknowledge, Resolve, Reopen)
+- [x] Support operator investigation note submission
+- [x] Render chronological event timeline history
+
+### Files Changed
+- `frontend/src/pages/IncidentsPage.tsx`
+- `docs/reports/DAY_21_REPORT.md`
+
+---
+
+## Day 22 — Alert Rules Interface & Authenticated WebSockets
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 6 Complete)
+
+### Objectives
+- [x] Implement alert rules table and "Create Rule" modal in `AlertRulesPage.tsx`
+- [x] Enable/disable rule status toggle and deletion action
+- [x] Build backend `ConnectionManager` and authenticated WebSocket route (`/api/v1/ws`)
+- [x] Support bi-directional ping/pong communication
+- [x] Implement `useWebSocket` hook with jittered exponential backoff reconnect
+
+### Files Changed
+- `backend/app/websocket/manager.py`
+- `backend/app/api/v1/websocket.py`
+- `backend/app/api/v1/router.py`
+- `backend/tests/test_websocket.py`
+- `frontend/src/hooks/useWebSocket.ts`
+- `frontend/src/pages/AlertRulesPage.tsx`
+- `docs/reports/DAY_22_REPORT.md`
+
+---
+
+## Day 23 — Controlled Recovery: Policies, Approval & Dry-Run
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 7 In Progress)
+
+### Objectives
+- [x] Design `RecoveryPolicy` and `RecoveryExecution` database models
+- [x] Apply Alembic migration `6004ff0c57fd`
+- [x] Enforce allowlisted action types (zero arbitrary shell execution)
+- [x] Build two-phase approval workflow (`PENDING_APPROVAL` -> `APPROVED`)
+- [x] Support safe `dry_run` simulation mode
+- [x] Persist audit trail entries for recovery requests and approvals
+- [x] Author comprehensive integration tests
+
+### Files Changed
+- `backend/app/models/recovery.py`
+- `backend/app/models/__init__.py`
+- `backend/alembic/versions/6004ff0c57fd_create_recovery_tables.py`
+- `backend/app/schemas/recovery.py`
+- `backend/app/api/v1/recovery.py`
+- `backend/app/api/v1/router.py`
+- `backend/tests/test_recovery.py`
+- `docs/reports/DAY_23_REPORT.md`
+
+---
+
+## Day 24 — Docker Simulation Scenarios & Pipeline Verification
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 7 In Progress)
+
+### Objectives
+- [x] Build bounded CPU spike scenario (`simulator/scenarios/cpu_spike.py`)
+- [x] Build bounded memory pressure scenario (`simulator/scenarios/memory_pressure.py`)
+- [x] Build bounded disk pressure scenario (`simulator/scenarios/disk_pressure.py`)
+- [x] Create simulated agent container (`simulator/docker/Dockerfile.agent`)
+- [x] Author automated end-to-end integration test (`backend/tests/test_simulation.py`) verifying CPU spike to incident creation and recovery auto-clearance
+
+### Files Changed
+- `simulator/scenarios/cpu_spike.py`
+- `simulator/scenarios/memory_pressure.py`
+- `simulator/scenarios/disk_pressure.py`
+- `simulator/docker/Dockerfile.agent`
+- `backend/tests/test_simulation.py`
+- `docs/reports/DAY_24_REPORT.md`

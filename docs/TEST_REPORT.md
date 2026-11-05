@@ -265,3 +265,53 @@ cd frontend && npm run build
 - **Frontend Build Status:**
   - `tsc`: 0 errors
   - `vite build`: Production build verified in 2.12s (`dist/` created cleanly)
+
+---
+
+## Test Run: TR-006
+**Date:** 2026-11-05  
+**Run ID:** Days-19-to-24-milestone  
+**Phase:** Phase 6 (Frontend Pages), Phase 7 (Recovery & Simulation)  
+
+### Commands
+```bash
+# Agent tests
+cd agent && .venv/bin/pytest -v
+
+# Backend tests
+docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -e REDIS_HOST=opspulse-redis -e TESTING=true -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+
+# Frontend build
+cd frontend && npm run build
+```
+
+### Result
+- **Agent Unit Tests:** 31 passed in 0.44s (100% pass)
+- **Backend Tests:** 42 passed in 22.28s (100% pass)
+  - `test_recovery.py` (1 passed)
+  - `test_simulation.py` (1 passed)
+  - `test_websocket.py` (2 passed)
+  - `test_alert_evaluation.py` (5 passed)
+  - `test_incidents.py` (3 passed)
+  - `test_agent_health.py` (2 passed)
+  - `test_agents.py` (1 passed)
+  - `test_alert_rules.py` (2 passed)
+  - `test_audit.py` (2 passed)
+  - `test_auth.py` (5 passed)
+  - `test_database.py` (4 passed)
+  - `test_health.py` (4 passed)
+  - `test_ingest_api.py` (4 passed)
+  - `test_metrics_persistence.py` (3 passed)
+  - `test_queue_worker.py` (3 passed)
+- **Total Automated Backend & Agent Tests Passing:** 73 passing tests (0 failures)
+- **Database Migrations:** 7 migrations applied to head:
+  - `5d7b14653929` (users & agents)
+  - `8d5340076971` (audit_logs)
+  - `95e7fdc22d79` (processed_batches)
+  - `4ae56bb50e96` (metrics & aggregates)
+  - `d21a482937e2` (alert_rules)
+  - `3e33c503e175` (incidents & events)
+  - `6004ff0c57fd` (recovery_policies, recovery_executions)
+- **Frontend Build Status:**
+  - `tsc`: 0 errors
+  - `vite build`: Clean production bundle (3.75s)

@@ -170,3 +170,4 @@ class IncidentEvent(Base, UUIDPrimaryKeyMixin):
 
     def __repr__(self) -> str:
         return f"<IncidentEvent id={self.id} incident_id={self.incident_id} type={self.event_type}>"
+

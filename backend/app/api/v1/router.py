@@ -9,7 +9,18 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import agents, alerts, audit, auth, health, incidents, metrics, users
+from app.api.v1 import (
+    agents,
+    alerts,
+    audit,
+    auth,
+    health,
+    incidents,
+    metrics,
+    recovery,
+    users,
+    websocket,
+)
 
 api_router = APIRouter()
 
@@ -34,5 +45,11 @@ api_router.include_router(alerts.router, tags=["alerts"])
 # Incidents (All Roles Read, Admin/Operator Transitions)
 api_router.include_router(incidents.router, tags=["incidents"])
 
+# Controlled Recovery Policies & Executions
+api_router.include_router(recovery.router, tags=["recovery"])
+
 # Audit Trail (Admin Only)
 api_router.include_router(audit.router, tags=["audit"])
+
+# Realtime WebSocket stream
+api_router.include_router(websocket.router, tags=["websocket"])

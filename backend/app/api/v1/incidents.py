@@ -363,3 +363,4 @@ async def get_incident_events(
     )
     res = await db.execute(stmt)
     return list(res.scalars().all())
+

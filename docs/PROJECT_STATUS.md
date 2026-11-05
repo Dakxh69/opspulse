@@ -1,10 +1,10 @@
 # OpsPulse — Project Status
 
 **Last updated:** 2026-11-05  
-**Current phase:** Phase 6 — Frontend (In Progress)  
-**Current day:** Day 18 Complete  
+**Current phase:** Phase 7 — Recovery and Simulation (Days 23–24 Complete)  
+**Current day:** Day 24 Complete  
 **Overall status:** `IN PROGRESS`  
-**Completion:** ~60% (verified acceptance criteria)
+**Completion:** ~80% (verified acceptance criteria)
 
 ---
 
@@ -19,7 +19,7 @@
 | Health & readiness probes | `COMPLETE` | GET /api/v1/health with live DB ping |
 | CI and containerization | `COMPLETE` | Dockerfile, docker-compose, GitHub Actions (backend + agent) |
 | Database foundation | `COMPLETE` | PostgreSQL 17, asyncpg + psycopg2 engines |
-| Models & Migrations | `COMPLETE` | User, Agent, AuditLog, ProcessedBatch, MetricRecord, AlertRule, Incident, IncidentEvent |
+| Models & Migrations | `COMPLETE` | User, Agent, AuditLog, ProcessedBatch, MetricRecord, AlertRule, Incident, IncidentEvent, RecoveryPolicy, RecoveryExecution |
 | CPU Telemetry Collector | `COMPLETE` | Non-blocking delta sampling, per-core metrics, frequency, loadavg |
 | Memory Telemetry Collector | `COMPLETE` | RAM total/used/avail/percent, Swap metrics, zero-swap support |
 | Disk & Network Collectors (Day 6) | `COMPLETE` | Filesystem filter, counter rates, counter reset handling |
@@ -35,31 +35,37 @@
 | Incident Lifecycle (Day 16) | `COMPLETE` | State transitions (OPEN -> ACKNOWLEDGED -> RESOLVED -> REOPENED), timeline, RBAC |
 | Agent Health Monitor (Day 17) | `COMPLETE` | Celery heartbeat evaluation (ONLINE -> DEGRADED -> OFFLINE), auto-recovery |
 | Frontend Setup (Day 18) | `COMPLETE` | React 18, Vite 6, Tailwind CSS 3, TypeScript 5, layout, routing, clean build |
+| Overview Dashboard (Day 19) | `COMPLETE` | Live fleet metrics, pipeline status beacon, recent incident activity table |
+| Infrastructure & Charts (Day 20) | `COMPLETE` | Host inventory table, Recharts CPU/Memory AreaCharts, Network LineCharts, Disk progress bars |
+| Incident Dashboard (Day 21) | `COMPLETE` | Master-detail sticky triage panel, one-click state transitions, notes, event timeline history |
+| Alert Rules & WebSockets (Day 22) | `COMPLETE` | Rules UI & modal, backend WebSocket endpoint (`/api/v1/ws`), `useWebSocket` hook with jittered reconnect |
+| Controlled Recovery (Day 23) | `COMPLETE` | Allowlisted action types, two-phase approval workflow (`PENDING_APPROVAL` -> `APPROVED`), dry-run mode, migration `6004ff0c57fd` |
+| Docker Simulation Scenarios (Day 24) | `COMPLETE` | Bounded CPU spike, memory pressure, disk pressure, Docker agent container, automated test `test_simulation.py` |
 
 ## In Progress
 
 | Module | Status | Notes |
 |---|---|---|
-| Phase 6: Frontend Dashboard | `IN PROGRESS` | Day 18 complete; Day 19 (Overview Page & Live API Integration) next |
+| Phase 7: Recovery & Simulation | `IN PROGRESS` | Days 23 & 24 complete; Day 25 (Failure Testing) next |
 
 ## Pending Modules
 
-- Overview page with live data (Day 19)
-- Infrastructure & machine details page (Day 20)
-- Incidents dashboard & filters (Day 21)
-- Alert rules UI & WebSockets (Day 22)
-- Recovery policies & simulation (Days 23–25)
-- Hardening, integration & benchmarking (Days 26–30)
+- Failure testing scenarios: backend, redis, postgres (Day 25)
+- End-to-end integration & frontend testing (Day 26)
+- Reliability hardening & bug fixing (Day 27)
+- Multi-container Docker deployment (Day 28)
+- Benchmarking: latency & throughput (Day 29)
+- Finalization: architecture diagrams & demo (Day 30)
 
 ## Latest Test Status
 
 | Suite | Status | Notes |
 |---|---|---|
-| Backend tests | `PASSING` | 38/38 passed in Docker |
+| Backend tests | `PASSING` | 42/42 passed in Docker |
 | Agent tests | `PASSING` | 31/31 passed on host Python |
-| Total automated tests | `PASSING` | 69/69 passed (0 failures) |
-| Frontend build | `PASSING` | `tsc && vite build` clean (0 errors, 2.12s) |
-| Database migrations | `PASSING` | 6 migrations applied to PostgreSQL 17 head |
+| Total automated tests | `PASSING` | 73/73 passed (0 failures) |
+| Frontend build | `PASSING` | `tsc && vite build` clean (0 errors, 3.75s) |
+| Database migrations | `PASSING` | 7 migrations applied to PostgreSQL 17 head |
 
 ## Known Blockers
 
