@@ -66,3 +66,4 @@ Day 11 implements the relational persistence, indexing, downsampling, and query 
 - Implement CRUD endpoints (`POST /alerts/rules`, `GET /alerts/rules`, `GET /alerts/rules/{id}`, `PATCH /alerts/rules/{id}`, `DELETE /alerts/rules/{id}`).
 - Implement role-based authorization for alert rule configuration (Admin & Operator).
 - Comprehensive test suite for Day 12.
+

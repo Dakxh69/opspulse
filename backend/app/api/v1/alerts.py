@@ -206,3 +206,4 @@ async def delete_alert_rule(
     )
 
     return {"message": "Alert rule deleted successfully"}
+

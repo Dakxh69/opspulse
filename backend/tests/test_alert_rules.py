@@ -145,3 +145,4 @@ async def test_alert_rule_crud_and_audit(
     assert "ALERT_RULE_CREATED" in actions
     assert "ALERT_RULE_UPDATED" in actions
     assert "ALERT_RULE_DELETED" in actions
+

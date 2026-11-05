@@ -64,3 +64,4 @@ Day 12 implements the alert-rule configuration engine for OpsPulse. Infrastructu
 - Implement alert evaluation engine in Celery/Worker.
 - Evaluate sliding evaluation windows and consecutive breach counters.
 - Downstream incident triggering.
+

@@ -65,3 +65,4 @@ Day 10 completes Phase 3 by decoupling metric ingestion from database persistenc
 - Implement raw metric persistence in Celery worker task `process_metric_batch`.
 - Implement metric query endpoints (`GET /metrics/{agent_id}`, `GET /metrics/{agent_id}/latest`, `GET /metrics/{agent_id}/summary`).
 - Implement retention cleanup and downsampling scheduled tasks.
+

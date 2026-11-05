@@ -109,3 +109,4 @@ class AlertRule(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
     def __repr__(self) -> str:
         return f"<AlertRule id={self.id} name={self.name} metric={self.metric_key} {self.operator.value} {self.threshold}>"
+

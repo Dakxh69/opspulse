@@ -1,0 +1,20 @@
+{
+  "include": [
+    "backend",
+    "agent"
+  ],
+  "extraPaths": [
+    "backend",
+    "agent"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "agent",
+      "extraPaths": ["agent"]
+    },
+    {
+      "root": "backend",
+      "extraPaths": ["backend"]
+    }
+  ]
+}
