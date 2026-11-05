@@ -1,10 +1,10 @@
 # OpsPulse — Project Status
 
 **Last updated:** 2026-11-05  
-**Current phase:** Phase 1 Complete (Phase 2 Ready)  
-**Current day:** Day 3 Complete  
+**Current phase:** Phase 2 — Monitoring Agent (In Progress)  
+**Current day:** Day 4 Complete  
 **Overall status:** `IN PROGRESS`  
-**Completion:** ~15% (Phase 1 100% verified)
+**Completion:** ~20% (verified acceptance criteria)
 
 ---
 
@@ -12,27 +12,27 @@
 
 | Module | Status | Notes |
 |---|---|---|
-| Repository init | `COMPLETE` | Git repo on `main`, .gitignore, .dockerignore |
-| Environment audit | `COMPLETE` | Tool versions recorded |
-| .env.example & README.md | `COMPLETE` | Environment template & project documentation |
-| Documentation system | `COMPLETE` | Daily progress, session log, decision log, handoff |
+| Repository init & Scaffolding | `COMPLETE` | Git repo on `main`, .gitignore, .dockerignore |
+| Documentation system | `COMPLETE` | Progress, sessions, decision records, reports |
 | FastAPI application skeleton | `COMPLETE` | Factory, lifespan, CORS, error handling |
 | Core settings & logging | `COMPLETE` | pydantic-settings & RFC 3339 UTC JSON logging |
 | Health & readiness probes | `COMPLETE` | GET /api/v1/health with DB ping |
-| CI and containerization | `COMPLETE` | Multi-stage Dockerfile, docker-compose, GitHub Actions |
-| Code quality tools | `COMPLETE` | Ruff, Mypy strict, Pytest-asyncio |
+| CI and containerization | `COMPLETE` | Dockerfile, docker-compose, GitHub Actions (backend + agent) |
 | Database foundation | `COMPLETE` | PostgreSQL 17, asyncpg + psycopg2 engines |
 | Models & Migrations | `COMPLETE` | User & Agent models, Alembic migrations verified |
+| CPU Telemetry Collector | `COMPLETE` | Overall usage, per-core metrics, frequency, loadavg |
 
 ## In Progress
 
 | Module | Status | Notes |
 |---|---|---|
-| Phase 2: Monitoring Agent | `NOT STARTED` | Day 4 target |
+| Phase 2: Monitoring Agent | `IN PROGRESS` | Day 4 done; Day 5 next |
 
 ## Pending Modules
 
-- Agent collectors (Days 4–7)
+- Memory & swap collector (Day 5)
+- Disk & network collectors (Day 6)
+- Agent runtime & scheduler (Day 7)
 - Agent provisioning & auth (Day 8)
 - Heartbeat & ingestion API (Day 9)
 - Queue & worker (Day 10)
@@ -46,16 +46,16 @@
 
 | Suite | Status | Notes |
 |---|---|---|
-| Unit & Integration tests | `PASSING` | 8/8 passed in 0.85s |
-| Lint & format | `PASSING` | Ruff check & format clean (24 files) |
-| Type check | `PASSING` | Mypy passed (0 errors across 24 files) |
-| Live smoke test | `PASSING` | curl /api/v1/health returned 200 OK {"database": "ok"} |
-| Migration tests | `PASSING` | alembic upgrade -> downgrade -> upgrade clean |
+| Backend tests | `PASSING` | 8/8 passed in Docker |
+| Agent tests | `PASSING` | 4/4 passed on host Python |
+| Lint & format | `PASSING` | Ruff check & format clean (all files) |
+| Type check | `PASSING` | Mypy passed (0 errors) |
+| Host telemetry test | `PASSING` | 12 cores, 3368.6 MHz, 4.31 loadavg |
 
 ## Known Blockers
 
-None. All Phase 1 foundation deliverables are verified.
+None.
 
 ## Exact Next Task
 
-**Day 4:** Implement CPU metric collector in `agent/opspulse_agent/collectors/cpu.py` with multi-core utilization, logical core count, load averages, and unit tests.
+**Day 5:** Memory & Swap metric collector in `agent/opspulse_agent/collectors/memory.py` with validation and unit tests.

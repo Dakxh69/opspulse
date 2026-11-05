@@ -66,3 +66,27 @@ Days 1 and 2 COMPLETE. Ready for Day 3 (Database foundation).
 
 ### Status
 Phase 1 (Foundation: Days 1–3) is 100% COMPLETE. Ready for Phase 2 (Monitoring Agent: Day 4).
+
+
+## Session: 2026-11-05 (Day 4 Complete — Phase 2 CPU Collector Implemented & Verified)
+**Session Goal:** Implement Day 4 CPU telemetry collector for the host monitoring agent per spec Section 8.1.
+
+### Tasks Executed
+1. **Agent Environment:** Setup `agent/requirements.txt` and `agent/pyproject.toml` with Ruff, Mypy, Pytest, Pydantic, and Psutil.
+2. **CPU Telemetry Implementation:**
+   - Authored `agent/opspulse_agent/collectors/cpu.py` with `CpuMetrics`, `CpuFrequency`, `CpuLoadAverage`.
+   - Built `CpuCollector` using non-blocking delta sampling (`interval=None`).
+   - Added virtualization fallbacks for missing CPU frequencies and load averages.
+3. **Unit Tests & Verification:**
+   - Authored `agent/tests/test_cpu_collector.py` (4 unit tests).
+   - Validated live collection on host machine (12 cores, 3368.6 MHz, 4.31 loadavg).
+   - Fixed mock side_effect to cleanly handle `percpu` parameters without StopIteration errors.
+   - Verified 12/12 tests passing across backend and agent suites.
+4. **CI Pipeline:**
+   - Enabled `agent-lint-and-test` job in `.github/workflows/ci.yml`.
+5. **Documentation & Archiving:**
+   - Generated `docs/reports/DAY_04_REPORT.md` and updated `docs/reports/README.md`.
+   - Updated `PROJECT_STATE.md`, `docs/PROJECT_STATUS.md`, `docs/DECISIONS.md`, `docs/TEST_REPORT.md`, `docs/DEVELOPMENT_HANDOFF.md`.
+
+### Status
+Day 4 is COMPLETE. Phase 2 (Monitoring Agent) is in progress. Ready for Day 5 (Memory Collector).

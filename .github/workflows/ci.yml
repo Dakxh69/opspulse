@@ -71,22 +71,50 @@ jobs:
           REDIS_URL: "redis://localhost:6379/0"
 
   # =============================================================================
-  # Agent: lint, type check, unit tests (Day 4+ when agent code exists)
+  # Agent: lint, type check, unit tests (Phase 2)
   # =============================================================================
-  # agent-lint-and-test:
-  #   name: Agent — Lint, Type Check, Tests
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: agent
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: ${{ env.PYTHON_VERSION }}
-  #     - run: python -m venv .venv --upgrade-deps && source .venv/bin/activate && pip install -r requirements.txt
-  #     - run: source .venv/bin/activate && ruff check opspulse_agent/ tests/
-  #     - run: source .venv/bin/activate && pytest tests/
+  agent-lint-and-test:
+    name: Agent — Lint, Type Check, Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: agent/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv --upgrade-deps
+          source .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Lint with ruff
+        run: |
+          source .venv/bin/activate
+          ruff check opspulse_agent/ tests/
+
+      - name: Format check with ruff
+        run: |
+          source .venv/bin/activate
+          ruff format --check opspulse_agent/ tests/
+
+      - name: Type check with mypy
+        run: |
+          source .venv/bin/activate
+          mypy opspulse_agent/ tests/
+
+      - name: Run unit tests
+        run: |
+          source .venv/bin/activate
+          pytest tests/ -v --tb=short
 
   # =============================================================================
   # Frontend: lint, type check, unit tests (Day 18+ when frontend code exists)

@@ -242,3 +242,60 @@ Completed the entire Phase 1 Foundation milestone. Implemented the dual-engine d
 
 ### Next Day
 - Day 4: Phase 2 — Monitoring Agent (CPU metric collector with psutil, per-core metrics, load averages, and unit tests).
+
+
+---
+
+## Day 4 — Monitoring Agent: CPU Metric Collector
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 2 In Progress)
+
+### Objectives
+- [x] Configure agent development environment and requirements.txt
+- [x] Configure agent code quality tooling (Ruff and Mypy) in agent/pyproject.toml
+- [x] Define Pydantic models for CPU metrics, frequency, and load averages
+- [x] Implement non-blocking CpuCollector using psutil (interval=None)
+- [x] Implement multi-core utilization, logical/physical core identification, and OS load averages
+- [x] Add graceful handling for missing CPU frequencies and load averages in virtualized environments
+- [x] Author 4 unit tests in agent/tests/test_cpu_collector.py (all passing)
+- [x] Verify live telemetry on real Ubuntu host (12 logical cores, 6 physical cores observed)
+- [x] Update GitHub Actions CI workflow to include agent lint, type, and test jobs
+- [x] Run full test suite: 12/12 tests passing across backend and agent
+
+### Files Changed
+- `agent/requirements.txt`
+- `agent/pyproject.toml`
+- `agent/opspulse_agent/collectors/cpu.py`
+- `agent/opspulse_agent/collectors/__init__.py`
+- `agent/tests/test_cpu_collector.py`
+- `.github/workflows/ci.yml`
+- `PROJECT_STATE.md`
+- `docs/PROJECT_STATUS.md`
+- `docs/SESSION_LOG.md`
+- `docs/DECISIONS.md`
+- `docs/DECISION_LOG.md`
+- `docs/TEST_REPORT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `docs/DEVELOPMENT_HANDOFF.md`
+- `docs/reports/README.md`
+- `docs/reports/DAY_04_REPORT.md`
+
+### Implementation Summary
+Kick-started Phase 2 (Monitoring Agent). Built the CPU collector in `agent/opspulse_agent/collectors/cpu.py` using psutil. Utilized non-blocking delta sampling to ensure the agent collector never blocks scheduling ticks. Extracted overall CPU usage, per-core utilization array matching core counts, frequency in MHz, and system load averages. Verified behavior with unit tests and live host execution.
+
+### Commands and Verification
+- `.venv/bin/pytest -v` in `agent/` — 4 passed in 0.21s
+- `.venv/bin/ruff check opspulse_agent/ tests/` — 0 errors
+- `.venv/bin/ruff format --check opspulse_agent/ tests/` — 6 files clean
+- `.venv/bin/mypy opspulse_agent/ tests/` — 0 errors in 6 files
+- Docker backend pytest — 8 passed in 1.01s
+- Live host test — 12 logical cores, 4.3% usage, 4.31 loadavg
+
+### Decisions
+- DEC-011: Non-blocking CPU metric collection strategy (interval=None with init priming)
+
+### Issues
+- Open: None
+
+### Next Day
+- Day 5: Memory metric collector (RAM total/used/available/percent, Swap total/used/percent, validation, and unit tests).

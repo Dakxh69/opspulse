@@ -315,3 +315,33 @@ Option 2: Dynamically select `poolclass=NullPool` when `settings.DEBUG or settin
 ### Consequences
 - All integration tests run cleanly without event loop conflicts.
 - Production handles high-concurrency requests with connection reuse.
+
+
+---
+
+## DEC-011 — Non-Blocking CPU Metric Collection Strategy
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+In Python, calling `psutil.cpu_percent(interval=1.0)` blocks the calling thread for 1.0 second while sleeping to measure time deltas. In a monitoring agent that collects multiple subsystems concurrently or operates on a strict collection loop (e.g. 10-second batch intervals), blocking the main loop introduces latency, drifts scheduling timers, and delays heartbeats.
+
+### Options Considered
+1. Blocking interval (`psutil.cpu_percent(interval=0.5)`) — blocks the runtime thread; unacceptable for responsive agent execution.
+2. Background thread continuously polling CPU — introduces thread synchronization overhead, locks, and unnecessary CPU wakeups.
+3. Non-blocking delta sampling (`interval=None`) — `psutil` compares system CPU counters against the values stored from the previous call.
+
+### Decision
+Option 3: Use `psutil.cpu_percent(interval=None)`. During `CpuCollector.__init__()`, prime the internal counters once. Each subsequent call to `.collect()` computes the exact utilization percentage accumulated since the prior sample with zero sleep or thread blocking.
+
+### Reason
+- Zero thread blocking allows the agent loop to execute in sub-millisecond time.
+- Low overhead; avoids wasting CPU cycles sleeping or managing polling threads.
+- Accurate: the delta reflects the actual interval between agent scheduler ticks.
+
+### Trade-offs
+- The very first call during `__init__` returns an arbitrary baseline (often 0.0), which is why we discard the first sample in `__init__` and only expose measurements from subsequent ticks.
+
+### Consequences
+- CPU metrics collection executes instantaneously (<1ms).
+- Agent collection scheduler maintains jitter-free precision.

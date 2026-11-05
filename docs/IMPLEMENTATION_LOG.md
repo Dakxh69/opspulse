@@ -101,3 +101,25 @@ Establish persistent storage layer in PostgreSQL with asynchronous sessions for 
 - 4 database integration tests passing.
 - 0 Ruff errors, 0 Mypy errors across 24 source files.
 - Live readiness probe returns `{"database": "ok"}`.
+
+
+---
+
+## Module: Host Monitoring Agent — CPU Collector
+**Date:** 2026-11-05  
+**Status:** COMPLETE  
+
+### Files
+- `agent/requirements.txt`
+- `agent/pyproject.toml`
+- `agent/opspulse_agent/collectors/cpu.py`
+- `agent/opspulse_agent/collectors/__init__.py`
+- `agent/tests/test_cpu_collector.py`
+
+### Purpose
+Collect live CPU performance metrics on Linux hosts (overall percentage, per-core utilization, logical and physical cores, frequency, system load averages) without blocking the agent runtime loop.
+
+### Verification
+- 4 unit tests passing in `agent/tests/test_cpu_collector.py`.
+- Real host smoke test verified (12 logical cores, 6 physical cores, 4.3% CPU usage).
+- Ruff and Mypy passed with zero errors.

@@ -98,3 +98,33 @@ curl http://localhost:8000/api/v1/health
 - **Type Checker Status:** Mypy clean (0 errors across 24 source files)
 - **Migration Status:** Full upgrade/downgrade/re-upgrade verified
 - **Live Smoke Test:** HTTP 200 `{"status":"ok","version":"0.1.0","database":"ok"}`
+
+
+---
+
+## Test Run: TR-004
+**Date:** 2026-11-05  
+**Run ID:** Day-4-agent-cpu-collector  
+**Phase:** Phase 2 — Monitoring Agent
+
+### Commands
+```bash
+cd agent && .venv/bin/pytest -v
+cd agent && .venv/bin/ruff check opspulse_agent/ tests/
+cd agent && .venv/bin/ruff format --check opspulse_agent/ tests/
+cd agent && .venv/bin/mypy opspulse_agent/ tests/
+docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -e TESTING=true -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+```
+
+### Result
+- **Agent Unit Tests:** 4 passed in 0.21s
+  - `tests/test_cpu_collector.py::test_cpu_collector_live_collection` (PASSED)
+  - `tests/test_cpu_collector.py::test_cpu_collector_mocked_values` (PASSED)
+  - `tests/test_cpu_collector.py::test_cpu_collector_graceful_missing_freq_and_loadavg` (PASSED)
+  - `tests/test_cpu_collector.py::test_cpu_metrics_pydantic_schema_validation` (PASSED)
+- **Backend Tests:** 8 passed in 1.01s
+- **Total Suite Passing:** 12 tests across repo
+- **Linter Status:** Ruff check clean (0 errors)
+- **Formatter Status:** Ruff format clean (all files)
+- **Type Checker Status:** Mypy strict clean (0 issues)
+- **Live Smoke Test:** Verified real host metrics (12 logical cores, 6 physical cores, 3368.6 MHz, 4.31 loadavg)
