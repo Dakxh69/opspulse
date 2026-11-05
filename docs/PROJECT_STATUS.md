@@ -2,9 +2,9 @@
 
 **Last updated:** 2026-11-05  
 **Current phase:** Phase 2 — Monitoring Agent (In Progress)  
-**Current day:** Day 4 Complete  
+**Current day:** Day 5 Complete  
 **Overall status:** `IN PROGRESS`  
-**Completion:** ~20% (verified acceptance criteria)
+**Completion:** ~25% (verified acceptance criteria)
 
 ---
 
@@ -16,21 +16,21 @@
 | Documentation system | `COMPLETE` | Progress, sessions, decision records, reports |
 | FastAPI application skeleton | `COMPLETE` | Factory, lifespan, CORS, error handling |
 | Core settings & logging | `COMPLETE` | pydantic-settings & RFC 3339 UTC JSON logging |
-| Health & readiness probes | `COMPLETE` | GET /api/v1/health with DB ping |
+| Health & readiness probes | `COMPLETE` | GET /api/v1/health with live DB ping |
 | CI and containerization | `COMPLETE` | Dockerfile, docker-compose, GitHub Actions (backend + agent) |
 | Database foundation | `COMPLETE` | PostgreSQL 17, asyncpg + psycopg2 engines |
 | Models & Migrations | `COMPLETE` | User & Agent models, Alembic migrations verified |
 | CPU Telemetry Collector | `COMPLETE` | Overall usage, per-core metrics, frequency, loadavg |
+| Memory Telemetry Collector | `COMPLETE` | RAM total/used/avail/percent, Swap metrics, zero-swap support |
 
 ## In Progress
 
 | Module | Status | Notes |
 |---|---|---|
-| Phase 2: Monitoring Agent | `IN PROGRESS` | Day 4 done; Day 5 next |
+| Phase 2: Monitoring Agent | `IN PROGRESS` | Days 4 & 5 done; Day 6 next |
 
 ## Pending Modules
 
-- Memory & swap collector (Day 5)
 - Disk & network collectors (Day 6)
 - Agent runtime & scheduler (Day 7)
 - Agent provisioning & auth (Day 8)
@@ -47,10 +47,11 @@
 | Suite | Status | Notes |
 |---|---|---|
 | Backend tests | `PASSING` | 8/8 passed in Docker |
-| Agent tests | `PASSING` | 4/4 passed on host Python |
+| Agent tests | `PASSING` | 9/9 passed on host Python |
+| Total tests | `PASSING` | 17/17 passed |
 | Lint & format | `PASSING` | Ruff check & format clean (all files) |
-| Type check | `PASSING` | Mypy passed (0 errors) |
-| Host telemetry test | `PASSING` | 12 cores, 3368.6 MHz, 4.31 loadavg |
+| Type check | `PASSING` | Mypy strict passed (0 errors) |
+| Host telemetry test | `PASSING` | Real host CPU, RAM (7.07 GB), Swap (4.29 GB) verified |
 
 ## Known Blockers
 
@@ -58,4 +59,4 @@ None.
 
 ## Exact Next Task
 
-**Day 5:** Memory & Swap metric collector in `agent/opspulse_agent/collectors/memory.py` with validation and unit tests.
+**Day 6:** Disk mount collector and Network counter/rate delta collector in `agent/opspulse_agent/collectors/` with validation and unit tests.

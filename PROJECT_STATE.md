@@ -2,9 +2,9 @@
 
 **Last Updated:** 2026-11-05  
 **Current Phase:** Phase 2 — Monitoring Agent (In Progress)  
-**Current Roadmap Day:** Day 4 (CPU Metric Collector) Complete  
+**Current Roadmap Day:** Day 5 (Memory Metric Collector) Complete  
 **Overall Status:** `IN PROGRESS`  
-**Completion Percentage:** ~20% (Verified against acceptance criteria)  
+**Completion Percentage:** ~25% (Verified against acceptance criteria)  
 
 ---
 
@@ -20,7 +20,8 @@
 | **ORM Models & Migrations**| `COMPLETE` | `User` & `Agent` models, Alembic migration `5d7b14653929` verified upgrade/downgrade cycle |
 | **Health & Readiness** | `COMPLETE` | `GET /api/v1/health` verifies application status and executes live `SELECT 1` database ping |
 | **CPU Telemetry Collector** | `COMPLETE` | `agent/opspulse_agent/collectors/cpu.py` non-blocking CPU usage, per-core metrics, frequency, loadavg |
-| **Quality & Tests** | `COMPLETE` | Ruff clean (0 errors), Mypy strict (0 issues), 12/12 tests passing (8 backend + 4 agent) |
+| **Memory Telemetry Collector** | `COMPLETE` | `agent/opspulse_agent/collectors/memory.py` RAM total/used/avail/percent, Swap metrics, zero-swap support |
+| **Quality & Tests** | `COMPLETE` | Ruff clean (0 errors), Mypy strict (0 issues), 17/17 tests passing (8 backend + 9 agent) |
 
 ---
 
@@ -29,7 +30,7 @@
 | Phase | Days | Focus Area | Status |
 |---|---|---|---|
 | **Phase 1 — Foundation** | Days 1–3 | Repo, FastAPI skeleton, PostgreSQL, Alembic | `COMPLETE` (100%) |
-| **Phase 2 — Monitoring Agent** | Days 4–7 | CPU (Done), Memory (Next), Disk, Network, Runtime | `IN PROGRESS` (25%) |
+| **Phase 2 — Monitoring Agent** | Days 4–7 | CPU (Done), Memory (Done), Disk & Network (Next), Runtime | `IN PROGRESS` (50%) |
 | **Phase 3 — Identity & Ingestion** | Days 8–10 | Agent provisioning, Ingest endpoint, Redis/Celery queue | `NOT STARTED` |
 | **Phase 4 — Storage & Alerts** | Days 11–14 | Batch persistence, Query APIs, Threshold alert engine | `NOT STARTED` |
 | **Phase 5 — Incidents & Health** | Days 15–17 | Incident lifecycle state machine, Agent offline detection | `NOT STARTED` |
@@ -41,27 +42,29 @@
 
 ## 3. Test & Verification Status
 
-- **Automated Tests:** 12/12 passed (8 backend in Docker + 4 agent on host)
+- **Automated Tests:** 17/17 passed (8 backend in Docker + 9 agent on host)
   - Backend: 4 API health tests, 4 Database integration tests
-  - Agent: 4 CPU collector tests (live host sampling, mocked bounds, failure resilience, schema validation)
+  - Agent: 4 CPU collector tests, 5 Memory & Swap collector tests
 - **Linter Checks:** Ruff clean across all modules (0 errors)
-- **Formatter Checks:** Ruff format clean across backend (24 files) and agent (6 files)
+- **Formatter Checks:** Ruff format clean across backend (24 files) and agent (8 files)
 - **Type Checker Status:** Mypy strict mode clean across both codebases (0 issues)
-- **Host Telemetry Verified:** Real host sample: 12 logical cores, 6 physical cores, 3368.6 MHz frequency, 4.31 loadavg.
+- **Host Telemetry Verified:**
+  - CPU: 12 cores, 4.3% usage, 3368.6 MHz, 4.31 loadavg
+  - RAM: 7.07 GB total, 5.77 GB used, 81.6% usage
+  - Swap: 4.29 GB total, 3.75 GB used, 87.4% usage
 
 ---
 
 ## 4. Known Issues & Workarounds
 
-All known issues are resolved (KI-001, KI-002, KI-003).
+All known issues are resolved.
 
 ---
 
 ## 5. Exact Next Task
 
-**Day 5 — Memory Metric Collector:**
-1. Create `agent/opspulse_agent/collectors/memory.py`.
-2. Collect total RAM, used RAM, available RAM, memory utilization percentage.
-3. Collect swap total, swap used, swap free, and swap utilization percentage.
-4. Define `MemoryMetrics` and `SwapMetrics` Pydantic models.
-5. Create `agent/tests/test_memory_collector.py` with live and mocked unit tests.
+**Day 6 — Disk and Network Metric Collectors:**
+1. Create `agent/opspulse_agent/collectors/disk.py`: mounted filesystems, mount points, total/used/free/percent, excluding pseudo-mounts (proc, sysfs, devfs).
+2. Create `agent/opspulse_agent/collectors/network.py`: network counters (bytes sent/recv, packets, errors, drops), calculate rate deltas divided by elapsed seconds, handle interface disappearance and counter resets.
+3. Author Pydantic schemas for disk and network items.
+4. Author unit tests in `agent/tests/test_disk_collector.py` and `agent/tests/test_network_collector.py`.

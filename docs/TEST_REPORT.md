@@ -128,3 +128,35 @@ docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e
 - **Formatter Status:** Ruff format clean (all files)
 - **Type Checker Status:** Mypy strict clean (0 issues)
 - **Live Smoke Test:** Verified real host metrics (12 logical cores, 6 physical cores, 3368.6 MHz, 4.31 loadavg)
+
+
+---
+
+## Test Run: TR-005
+**Date:** 2026-11-05  
+**Run ID:** Day-5-agent-memory-collector  
+**Phase:** Phase 2 — Monitoring Agent
+
+### Commands
+```bash
+cd agent && .venv/bin/pytest -v
+cd agent && .venv/bin/ruff check opspulse_agent/ tests/
+cd agent && .venv/bin/ruff format --check opspulse_agent/ tests/
+cd agent && .venv/bin/mypy opspulse_agent/ tests/
+docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -e TESTING=true -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+```
+
+### Result
+- **Agent Unit Tests:** 9 passed in 0.20s
+  - `tests/test_cpu_collector.py` (4 tests passed)
+  - `tests/test_memory_collector.py::test_memory_collector_live_collection` (PASSED)
+  - `tests/test_memory_collector.py::test_memory_collector_mocked_values` (PASSED)
+  - `tests/test_memory_collector.py::test_memory_collector_zero_swap_support` (PASSED)
+  - `tests/test_memory_collector.py::test_memory_collector_swap_exception_fallback` (PASSED)
+  - `tests/test_memory_collector.py::test_memory_metrics_validation` (PASSED)
+- **Backend Tests:** 8 passed in 1.03s
+- **Total Suite Passing:** 17 tests across repo
+- **Linter Status:** Ruff check clean (0 errors)
+- **Formatter Status:** Ruff format clean (all files)
+- **Type Checker Status:** Mypy strict clean (0 issues across all source files)
+- **Live Smoke Test:** Verified real host RAM (7.07 GB, 81.6% used) and Swap (4.29 GB, 87.4% used)

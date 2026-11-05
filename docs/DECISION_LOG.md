@@ -345,3 +345,30 @@ Option 3: Use `psutil.cpu_percent(interval=None)`. During `CpuCollector.__init__
 ### Consequences
 - CPU metrics collection executes instantaneously (<1ms).
 - Agent collection scheduler maintains jitter-free precision.
+
+
+---
+
+## DEC-012 — Safe Zero-Swap and Virtual Memory Collection Strategy
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+On modern Linux systems, swap configuration varies dramatically: physical developer workstations and laptops frequently configure swap partitions or swap files (e.g. 4–8 GB), whereas container runtimes (Docker, Kubernetes) and certain cloud VM configurations disable swap entirely (`swap.total == 0`). In unhandled implementations, calculating swap utilization can trigger `ZeroDivisionError` or produce `NaN`.
+
+### Options Considered
+1. Raise an error when swap is unavailable — breaks agent execution in containerized or headless environments.
+2. Omit swap metrics when total == 0 — makes payload schemas irregular and unpredictable for backend workers.
+3. Explicitly guard total swap: return `usage_percent = 0.0` when `total_bytes == 0` while still capturing accurate zero values.
+
+### Decision
+Option 3: Guard `total_bytes`. When `sm.total > 0`, use `float(sm.percent)`. When `sm.total == 0`, report `0` for total/used/free bytes and `0.0` for `usage_percent`. Wrap swap collection in a try/except block to gracefully degrade to `swap=None` if OS permission constraints forbid accessing `/proc/swaps`.
+
+### Reason
+- Ensures predictable Pydantic payloads across diverse environments (bare metal, laptops, VMs, Docker containers).
+- Protects against division-by-zero crashes.
+- Accurately conveys that zero swap is actively utilized when swap is disabled.
+
+### Consequences
+- Backend alert rules for swap will not trigger false positives on hosts without swap.
+- Agent runs cleanly inside both containerized simulations and real host machines.

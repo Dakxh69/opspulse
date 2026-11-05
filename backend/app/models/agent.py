@@ -72,3 +72,4 @@ class Agent(Base, UUIDPrimaryKeyMixin):
 
     def __repr__(self) -> str:
         return f"<Agent id={self.id} name={self.name} status={self.status}>"
+

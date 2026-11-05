@@ -299,3 +299,57 @@ Kick-started Phase 2 (Monitoring Agent). Built the CPU collector in `agent/opspu
 
 ### Next Day
 - Day 5: Memory metric collector (RAM total/used/available/percent, Swap total/used/percent, validation, and unit tests).
+
+
+---
+
+## Day 5 — Monitoring Agent: Memory & Swap Telemetry Collector
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 2 In Progress)
+
+### Objectives
+- [x] Define Pydantic models for MemoryMetrics and SwapMetrics
+- [x] Implement MemoryCollector in agent/opspulse_agent/collectors/memory.py using psutil
+- [x] Collect RAM total, used, available, percentage, free, cached, and buffers
+- [x] Collect Swap total, used, free, and utilization percentage
+- [x] Support zero-swap environments without division by zero
+- [x] Handle permission or access errors in swap memory with graceful fallback
+- [x] Author 5 comprehensive unit tests in agent/tests/test_memory_collector.py (all passing)
+- [x] Verify live memory telemetry on Ubuntu host (7.07 GB RAM, 4.29 GB Swap observed)
+- [x] Verify full test suite: 17/17 tests passing across backend and agent
+
+### Files Changed
+- `agent/opspulse_agent/collectors/memory.py`
+- `agent/opspulse_agent/collectors/__init__.py`
+- `agent/tests/test_memory_collector.py`
+- `PROJECT_STATE.md`
+- `docs/PROJECT_STATUS.md`
+- `docs/SESSION_LOG.md`
+- `docs/DECISIONS.md`
+- `docs/DECISION_LOG.md`
+- `docs/TEST_REPORT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `docs/DEVELOPMENT_HANDOFF.md`
+- `docs/reports/README.md`
+- `docs/reports/DAY_05_REPORT.md`
+
+### Implementation Summary
+Implemented the memory telemetry subsystem in `agent/opspulse_agent/collectors/memory.py`. Extracted RAM metrics and swap metrics. Enforced byte non-negativity and percentage ranges `[0.0, 100.0]`. Ensured that hosts running with swap disabled or in containers do not encounter division-by-zero errors. Tested with live host execution and unit tests.
+
+### Commands and Verification
+- `.venv/bin/pytest -v` in `agent/` — 9 passed in 0.19s
+- `.venv/bin/ruff check opspulse_agent/ tests/` — 0 errors
+- `.venv/bin/ruff format --check opspulse_agent/ tests/` — 8 files clean
+- `.venv/bin/mypy opspulse_agent/ tests/` — 0 errors in 8 files
+- Docker backend pytest — 8 passed in 1.03s
+- Total tests passing: 17/17
+- Real host memory smoke test — RAM 7.07 GB total, 81.6% used; Swap 4.29 GB total, 87.4% used
+
+### Decisions
+- DEC-012: Safe zero-swap and virtual memory collection strategy
+
+### Issues
+- Open: None
+
+### Next Day
+- Day 6: Disk and Network metric collectors (mounted filesystems, counter deltas, rate calculations, counter reset handling).

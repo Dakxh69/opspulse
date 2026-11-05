@@ -123,3 +123,22 @@ Collect live CPU performance metrics on Linux hosts (overall percentage, per-cor
 - 4 unit tests passing in `agent/tests/test_cpu_collector.py`.
 - Real host smoke test verified (12 logical cores, 6 physical cores, 4.3% CPU usage).
 - Ruff and Mypy passed with zero errors.
+
+
+---
+
+## Module: Host Monitoring Agent — Memory Collector
+**Date:** 2026-11-05  
+**Status:** COMPLETE  
+
+### Files
+- `agent/opspulse_agent/collectors/memory.py`
+- `agent/tests/test_memory_collector.py`
+
+### Purpose
+Collect RAM telemetry (total, used, available, percent, free, buffers, cached) and Swap telemetry (total, used, free, percent) on Linux hosts, handling zero-swap environments gracefully.
+
+### Verification
+- 5 unit tests passing in `agent/tests/test_memory_collector.py`.
+- Real host memory verified (7.07 GB RAM, 4.29 GB Swap).
+- Ruff and Mypy passed with zero errors.

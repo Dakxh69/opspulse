@@ -32,3 +32,4 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
     await engine.dispose()
+

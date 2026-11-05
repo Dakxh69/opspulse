@@ -90,3 +90,25 @@ Phase 1 (Foundation: Days 1–3) is 100% COMPLETE. Ready for Phase 2 (Monitoring
 
 ### Status
 Day 4 is COMPLETE. Phase 2 (Monitoring Agent) is in progress. Ready for Day 5 (Memory Collector).
+
+
+## Session: 2026-11-05 (Day 5 Complete — Phase 2 Memory Collector Implemented & Verified)
+**Session Goal:** Implement Day 5 Memory & Swap telemetry collector for the host monitoring agent per spec Section 8.2.
+
+### Tasks Executed
+1. **Memory Telemetry Implementation:**
+   - Authored `agent/opspulse_agent/collectors/memory.py` with `MemoryMetrics`, `SwapMetrics`.
+   - Extracted RAM total, used, available, percentage, free, cached, and buffers.
+   - Extracted Swap total, used, free, and percentage.
+   - Handled zero-swap environments safely.
+2. **Unit Tests & Quality Verification:**
+   - Authored `agent/tests/test_memory_collector.py` with 5 unit tests (all passing).
+   - Validated live collection on host machine (RAM: 7.07 GB, 81.6% used; Swap: 4.29 GB, 87.4% used).
+   - Verified 17/17 tests passing across the repository (8 backend + 9 agent).
+   - Ruff linting and format clean (8 files); Mypy strict clean (0 issues).
+3. **Documentation & Archiving:**
+   - Generated `docs/reports/DAY_05_REPORT.md` and updated `docs/reports/README.md`.
+   - Updated `PROJECT_STATE.md`, `docs/PROJECT_STATUS.md`, `docs/DECISIONS.md`, `docs/TEST_REPORT.md`, `docs/DEVELOPMENT_HANDOFF.md`.
+
+### Status
+Day 5 is COMPLETE. Phase 2 (Monitoring Agent) is 50% complete. Ready for Day 6 (Disk and Network Collectors).
