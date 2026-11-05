@@ -190,7 +190,7 @@ class AlertEngine:
             values: list[float] = []
             for r in window_records:
                 v = _extract_metric_values(r, rule.metric_key)
-                if isinstance(v, (int, float)):
+                if isinstance(v, int | float):
                     values.append(float(v))
 
             if len(values) >= rule.consecutive_breaches:
