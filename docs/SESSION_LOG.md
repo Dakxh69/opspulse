@@ -136,3 +136,50 @@ Execute user directive: "complete day 6 - 12 in a go and test it if it works and
    - Total: 59/59 automated tests passing.
    - Ruff: 0 errors across 52 backend files and 15 agent files.
    - Mypy: 0 errors across 41 backend files and agent package.
+
+---
+
+## Session 5 — 2026-11-05: Implementation of Days 13 Through 18
+
+### Scope & Objective
+Execute user directive: "okk go on with day 13-18". Deliver Phase 4 completion (Alerts), Phase 5 completion (Incidents & Agent Health), and Phase 6 initiation (Frontend Setup), verifying all tests and generating daily reports.
+
+### Work Delivered
+1. **Day 13 (Alert Evaluation Engine):**
+   - Arithmetic comparison operators (`>`, `>=`, `<`, `<=`, `==`) with floating epsilon.
+   - Sliding evaluation windows and consecutive breach verification to suppress transient spikes.
+   - Explicit distinction between missing data and zero values.
+   - Per-dimension filtering and aggregation (`EACH` vs `MAX`).
+2. **Day 14 (Alert Reliability & Deduplication):**
+   - Active incident deduplication on `(agent_id, rule_id, dimension)`.
+   - Post-resolution cooldown suppression.
+   - Auto-resolution when metrics normalize, recording `AUTO_CLEARED` events.
+   - Celery worker integration in `process_metric_batch`.
+3. **Day 15 (Incident Creation & Database Models):**
+   - `Incident` and `IncidentEvent` database models with compound B-tree index `ix_incidents_active_lookup`.
+   - Applied Alembic migration `3e33c503e175_create_incidents_and_events.py`.
+   - Pydantic serialization schemas (`IncidentResponse`, `IncidentEventResponse`, `IncidentListResponse`).
+4. **Day 16 (Incident Lifecycle & State Machine):**
+   - State transition validation (`OPEN -> ACKNOWLEDGED -> RESOLVED -> REOPENED`).
+   - REST endpoints: acknowledge, resolve, reopen, note addition, detail view, filtering, timeline events.
+   - RBAC enforcement (Viewer read-only, Admin/Operator state changes).
+   - Audit trail integration for operational state transitions.
+5. **Day 17 (Agent Health Monitoring & Offline Detection):**
+   - Celery task `monitor_agent_health` checking heartbeat freshness (ONLINE -> DEGRADED >60s -> OFFLINE >120s).
+   - Deduplicated "Agent Offline" critical incident creation.
+   - Auto-recovery: Agent returns and sends heartbeat -> status becomes ONLINE and active offline incident is auto-resolved.
+6. **Day 18 (Frontend Setup & Dashboard Scaffolding):**
+   - React 18, Vite 6, Tailwind CSS 3, TypeScript 5.
+   - Client-side routing with `react-router-dom` and reverse-proxy to FastAPI.
+   - Full TypeScript types matching backend schemas.
+   - Responsive dark dashboard layout with sidebar navigation, active status indicator, and operator identity badge.
+   - Initial page views: Overview, Infrastructure, Incidents, Alert Rules, Audit Logs.
+   - Production build verified: `tsc && vite build` (2.12s, 0 errors).
+7. **Reports:**
+   - Generated `DAY_13_REPORT.md`, `DAY_14_REPORT.md`, `DAY_15_REPORT.md`, `DAY_16_REPORT.md`, `DAY_17_REPORT.md`, `DAY_18_REPORT.md` in `docs/reports/`.
+   - Updated `docs/reports/README.md`.
+8. **Verification:**
+   - 38/38 Backend tests passing in Docker (`opspulse-backend:test`).
+   - 31/31 Agent tests passing on host Python.
+   - Total: 69/69 automated tests passing (0 failures).
+   - Frontend build verified: 0 TypeScript errors.

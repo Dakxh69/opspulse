@@ -542,3 +542,87 @@ Every alert rule creation, modification, and deletion creates an entry in `audit
 
 ### Reason
 - Complete accountability for operational threshold changes.
+
+---
+
+## DEC-024 — Window-Based Sample Evaluation in Transactional Pipeline
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Metric evaluation must observe temporal trends across recent samples, not just a single instantaneous sample.
+
+### Decision
+The Alert Engine queries recent samples within `evaluation_window_seconds` from PostgreSQL with `selectinload` for child disk/network entities, ensuring full dimension fidelity without N+1 query overhead.
+
+---
+
+## DEC-025 — Compound Active Index for Incident Deduplication
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Checking whether an active incident exists for an agent and rule must be sub-millisecond fast.
+
+### Decision
+Created compound B-tree index `ix_incidents_active_lookup` on `(agent_id, rule_id, dimension, status)` to make deduplication lookups instant.
+
+---
+
+## DEC-026 — Automatic Clear Tracking with Dedicated Event Type
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Operators need to know whether an issue was manually resolved or self-healed by the infrastructure.
+
+### Decision
+Auto-recovered incidents record an explicit `AUTO_CLEARED` timeline event with system actor (`actor_user_id=None`) and measured normal value.
+
+---
+
+## DEC-027 — Event-Sourced Incident History
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Compliance and post-mortem analysis require an immutable log of who took what action on an incident and when.
+
+### Decision
+All state transitions, auto-clearances, and investigation notes are recorded as chronological `IncidentEvent` rows linked to the parent incident with cascading deletes.
+
+---
+
+## DEC-028 — State Machine Transition Enforcement
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Arbitrary state jumps (e.g. acknowledging after resolution) create corrupt incident histories.
+
+### Decision
+Endpoints explicitly validate the starting state before mutating, ensuring lifecycle integrity and proper attribution.
+
+---
+
+## DEC-029 — Asynchronous Heartbeat Monitor with Inbound Ping Auto-Clearance
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Detecting missing heartbeats requires a periodic background evaluation, whereas detecting recovery can happen immediately when an incoming HTTP ping arrives.
+
+### Decision
+Degradation and offline transitions are driven asynchronously by Celery task `monitor_agent_health`, while recovery happens synchronously inside `POST /api/v1/agents/heartbeat` for sub-second incident resolution.
+
+---
+
+## DEC-030 — Vite Bundler with Localhost Reverse Proxy
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+During local development, the frontend runs on port 5173 while FastAPI runs on port 8000. Cross-origin cookie exchange with `HttpOnly SameSite=Strict` cookies can fail if not on the same origin.
+
+### Decision
+Configured Vite dev server proxy to forward `/api` requests directly to `http://localhost:8000`, ensuring cookies and sessions work seamlessly in development without CORS complexity.

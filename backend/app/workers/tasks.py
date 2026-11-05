@@ -19,6 +19,14 @@ from sqlalchemy import delete, func, select
 
 from app.core.config import settings
 from app.database.session import SyncSessionLocal
+from app.models.agent import Agent, AgentStatus
+from app.models.alert import AlertSeverity
+from app.models.incident import (
+    Incident,
+    IncidentEvent,
+    IncidentEventType,
+    IncidentStatus,
+)
 from app.models.metric import MetricAggregate, MetricDisk, MetricNetwork, MetricRecord
 from app.models.processed_batch import BatchStatus, ProcessedBatch
 
@@ -139,7 +147,18 @@ def process_metric_batch(
 
                 records_created += 1
 
-            # 3. Mark batch as PROCESSED
+            # 3. Evaluate alert rules and reconcile incidents
+            try:
+                from app.services.alert_engine import AlertEngine
+
+                AlertEngine.evaluate_agent(session, agent_uuid)
+            except Exception as alert_exc:
+                logger.error(
+                    "Error during alert rule evaluation",
+                    extra={"agent_id": agent_id, "error": str(alert_exc)},
+                )
+
+            # 4. Mark batch as PROCESSED
             batch_record.status = BatchStatus.PROCESSED
             batch_record.processed_at = datetime.now(UTC)
             batch_record.error_summary = None
@@ -267,3 +286,92 @@ def downsample_metrics(window_minutes: int = 60) -> dict[str, int]:
 
         session.commit()
         return {"aggregates_created": aggregates_created}
+
+
+@shared_task(name="app.workers.tasks.monitor_agent_health")  # type: ignore[misc]
+def monitor_agent_health() -> dict[str, int]:
+    """
+    Monitors agent heartbeats and applies lifecycle state transitions (Day 17):
+    - Age > 60s: sets status to DEGRADED.
+    - Age > 120s: sets status to OFFLINE, creates/updates deduplicated "Agent Offline" incident.
+    - Auto-recovers to ONLINE when heartbeat resumes (handled in POST /agents/heartbeat).
+    - Ignores revoked agents (revoked_at is not None).
+    """
+    now = datetime.now(UTC)
+    degraded_cutoff = now - timedelta(seconds=settings.AGENT_DEGRADED_AFTER_SECONDS)
+    offline_cutoff = now - timedelta(seconds=settings.AGENT_OFFLINE_AFTER_SECONDS)
+
+    degraded_count = 0
+    offline_count = 0
+
+    with SyncSessionLocal() as session:
+        stmt = select(Agent).where(Agent.revoked_at.is_(None))
+        agents = session.execute(stmt).scalars().all()
+
+        for agent in agents:
+            last_hb = agent.last_heartbeat
+            if last_hb is None:
+                last_hb = agent.created_at
+
+            if last_hb.tzinfo is None:
+                last_hb = last_hb.replace(tzinfo=UTC)
+
+            if last_hb < offline_cutoff:
+                if agent.status != AgentStatus.OFFLINE:
+                    agent.status = AgentStatus.OFFLINE
+                    offline_count += 1
+
+                # Reconcile deduplicated incident
+                inc_stmt = select(Incident).where(
+                    Incident.agent_id == agent.id,
+                    Incident.dimension == "heartbeat",
+                    Incident.status.in_([
+                        IncidentStatus.OPEN,
+                        IncidentStatus.ACKNOWLEDGED,
+                        IncidentStatus.INVESTIGATING,
+                    ]),
+                )
+                active_inc = session.execute(inc_stmt).scalars().first()
+
+                if active_inc:
+                    active_inc.last_seen_at = now
+                else:
+                    age_seconds = int((now - last_hb).total_seconds())
+                    new_inc = Incident(
+                        id=uuid.uuid4(),
+                        agent_id=agent.id,
+                        rule_id=None,
+                        dimension="heartbeat",
+                        title=f"Agent Offline: {agent.name or agent.hostname}",
+                        description=(
+                            f"Agent '{agent.hostname}' has not reported a heartbeat for {age_seconds}s "
+                            f"(exceeds offline threshold of {settings.AGENT_OFFLINE_AFTER_SECONDS}s)"
+                        ),
+                        severity=AlertSeverity.CRITICAL,
+                        status=IncidentStatus.OPEN,
+                        first_detected_at=now,
+                        last_seen_at=now,
+                    )
+                    session.add(new_inc)
+                    session.flush()
+
+                    detect_evt = IncidentEvent(
+                        id=uuid.uuid4(),
+                        incident_id=new_inc.id,
+                        event_type=IncidentEventType.DETECTED,
+                        message=f"Agent heartbeat expired ({age_seconds}s since last contact)",
+                        metadata_={"heartbeat_age_seconds": age_seconds},
+                        created_at=now,
+                    )
+                    new_inc.events.append(detect_evt)
+
+            elif last_hb < degraded_cutoff:
+                if agent.status != AgentStatus.DEGRADED:
+                    agent.status = AgentStatus.DEGRADED
+                    degraded_count += 1
+            else:
+                if agent.status != AgentStatus.ONLINE:
+                    agent.status = AgentStatus.ONLINE
+
+        session.commit()
+        return {"degraded_count": degraded_count, "offline_count": offline_count}

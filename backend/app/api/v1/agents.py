@@ -23,6 +23,7 @@ from app.api.deps import get_current_agent, get_current_user, require_role
 from app.core.security import generate_agent_secret, hash_secret
 from app.database.session import get_db
 from app.models.agent import Agent, AgentStatus
+from app.models.incident import Incident, IncidentEvent, IncidentEventType, IncidentStatus
 from app.models.user import User, UserRole
 from app.schemas.agent import (
     AgentProvisionResponse,
@@ -235,8 +236,36 @@ async def agent_heartbeat(
     current_agent: Agent = Depends(get_current_agent),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
-    """Updates the agent's last_heartbeat timestamp and ensures status is ONLINE."""
-    current_agent.last_heartbeat = datetime.now(UTC)
+    """Updates the agent's last_heartbeat timestamp, marks ONLINE, and resolves offline incidents."""
+    now = datetime.now(UTC)
+    current_agent.last_heartbeat = now
     current_agent.status = AgentStatus.ONLINE
+
+    # Auto-resolve active heartbeat/offline incidents for this agent
+    offline_stmt = select(Incident).where(
+        Incident.agent_id == current_agent.id,
+        Incident.dimension == "heartbeat",
+        Incident.status.in_([
+            IncidentStatus.OPEN,
+            IncidentStatus.ACKNOWLEDGED,
+            IncidentStatus.INVESTIGATING,
+        ]),
+    )
+    res = await db.execute(offline_stmt)
+    active_incidents = list(res.scalars().all())
+
+    for active_inc in active_incidents:
+        active_inc.status = IncidentStatus.RESOLVED
+        active_inc.resolved_at = now
+        active_inc.last_seen_at = now
+        clear_event = IncidentEvent(
+            id=uuid.uuid4(),
+            incident_id=active_inc.id,
+            event_type=IncidentEventType.AUTO_CLEARED,
+            message=f"Agent '{current_agent.hostname}' resumed heartbeat; returned to ONLINE status",
+            created_at=now,
+        )
+        active_inc.events.append(clear_event)
+
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

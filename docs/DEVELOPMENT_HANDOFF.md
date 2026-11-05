@@ -5,18 +5,18 @@
 
 ---
 
-## Handoff: Session 6 (Day 12 Complete — Phase 4 In Progress)
+## Handoff: Session 7 (Day 18 Complete — Phase 6 In Progress)
 **Date:** 2026-11-05  
-**Current State:** Phase 1, Phase 2, and Phase 3 are 100% complete. Phase 4 is 50% complete (Days 11 and 12 done). Ready for Day 13 (Alert Evaluation).
+**Current State:** Phase 1 (Foundation), Phase 2 (Agent), Phase 3 (Ingestion), Phase 4 (Storage & Alerts), and Phase 5 (Incidents & Agent Health) are 100% complete. Phase 6 (Frontend) is 20% complete (Day 18 done). 69/69 tests passing. Frontend build clean. Ready for Day 19 (Overview Page & Live API Integration).
 
 ### Repository Location
 `/home/daxx69/.gemini/antigravity/scratch/opspulse`  
 **Branch:** `main`  
 
 ### Current Day and Phase
-- **Day:** 12 of 30 complete (Alert-Rule Management)
-- **Phase:** Phase 4 — Storage and Alerts (In Progress — 50%)
-- **Roadmap Position:** Day 13 next (Alert Evaluation Engine)
+- **Day:** 18 of 30 complete (Frontend Setup)
+- **Phase:** Phase 6 — Frontend (In Progress — 20%)
+- **Roadmap Position:** Day 19 next (Overview Page with Live Backend Integration)
 
 ### Verified Completed Work
 - [x] Host environment audited (Ubuntu 26.04.1, Docker 29, Docker Compose v5.6.0)
@@ -58,47 +58,54 @@
   - `AlertRule` model, migration `d21a482937e2`
   - CRUD REST endpoints (`POST`, `GET`, `PATCH`, `DELETE /api/v1/alerts/rules`)
   - Role-based authorization (Admin/Operator write, Viewer read)
-  - Audit log entries on rule creation, modification, deletion
-- [x] 59/59 automated tests passing (28 backend in Docker + 31 agent on host)
-- [x] Static analysis clean: Ruff (0 errors across 52 backend + 15 agent files), Mypy strict (0 errors in 41 backend files + agent)
+- [x] Alert Evaluation Engine (Day 13):
+  - Arithmetic comparison operators (`>`, `>=`, `<`, `<=`, `==`)
+  - Sliding evaluation windows and consecutive breach verification
+  - Missing data vs zero values distinction
+  - Dimension filters and EACH vs MAX aggregation modes
+- [x] Alert Reliability & Deduplication (Day 14):
+  - Active incident deduplication on `(agent_id, rule_id, dimension)`
+  - Post-resolution cooldown suppression
+  - Auto-resolution with `AUTO_CLEARED` events on metric normalization
+  - Direct integration into Celery `process_metric_batch`
+- [x] Incident Creation & DB Models (Day 15):
+  - `Incident` and `IncidentEvent` database models
+  - Migration `3e33c503e175_create_incidents_and_events.py`
+  - Compound indexes (`ix_incidents_active_lookup`, `ix_incidents_status_severity`)
+  - Pydantic serialization schemas
+- [x] Incident Lifecycle & Endpoints (Day 16):
+  - State machine transitions (`OPEN -> ACKNOWLEDGED -> RESOLVED -> REOPENED`)
+  - Endpoints: acknowledge, resolve, reopen, note addition, detail, list, events
+  - RBAC enforcement and audit trail integration
+- [x] Agent Health Monitor (Day 17):
+  - Celery task `monitor_agent_health` checking heartbeat freshness
+  - Status progression: ONLINE -> DEGRADED (>60s) -> OFFLINE (>120s)
+  - Deduplicated "Agent Offline" critical incident creation
+  - Auto-recovery: Agent returns and sends heartbeat -> status becomes ONLINE and active offline incident is auto-resolved
+- [x] Frontend Setup (Day 18):
+  - React 18, Vite 6, Tailwind CSS 3, TypeScript 5
+  - Client-side routing with `react-router-dom` and reverse-proxy
+  - Responsive dark dashboard layout with sidebar navigation, active status indicator, and operator identity badge
+  - Scaffolding of Overview, Infrastructure, Incidents, Alert Rules, Audit Logs views
+  - Production build verified: `tsc && vite build` (2.12s, 0 errors)
 
-### Incomplete Work (Target: Days 13–18)
-- [ ] Alert evaluation engine in Celery/Worker with sliding windows (Day 13)
-- [ ] Alert reliability: sustained breaches, cooldown suppression, auto-clearing (Day 14)
-- [ ] Incident creation & deduplication state machine (Day 15)
-- [ ] Incident lifecycle endpoints: acknowledge, resolve, reopen, notes (Day 16)
-- [ ] Agent health evaluator & offline detection (Day 17)
-- [ ] Frontend setup with Vite, React, Tailwind CSS (Day 18)
-
-### Latest Test State
-- **Automated Tests:** 59 passed (28 backend in Docker + 31 agent on host)
-- **Linter / Formatter:** 0 errors across all source files (`ruff check`, `ruff format --check`)
-- **Type Checker:** 0 errors across all source files (`mypy`)
-
-### Active Issues
-- None.
-
-### Recent Decisions
-- DEC-013: Direct Bcrypt hashing over deprecated passlib.
-- DEC-014: HttpOnly session cookies with Bearer fallback.
-- DEC-015: Guaranteed audit persistence on failure.
-- DEC-016: Agent identity anti-spoofing check.
-- DEC-017: Bounded batch size enforcement.
-- DEC-018: Kombu & Redis version pinning (`kombu==5.4.2`, `redis==5.2.0`).
-- DEC-019: 503 Service Unavailable on queue failure.
-- DEC-020: Relational normalization with ON DELETE CASCADE.
-- DEC-021: Idempotent metric downsampling with `NULLS NOT DISTINCT`.
-- DEC-022: Role-based access for alert rule management (Admin & Operator write, Viewer read).
-- DEC-023: Alert rule auditability.
-
-### Exact Commands to Resume Testing
+### Test Verification
 ```bash
-# Agent tests
-cd /home/daxx69/.gemini/antigravity/scratch/opspulse/agent && .venv/bin/pytest -v
+# Agent tests (Host)
+cd agent && .venv/bin/pytest -v
+# 31 passed in 0.44s
 
-# Backend tests
-cd /home/daxx69/.gemini/antigravity/scratch/opspulse && docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -e REDIS_HOST=opspulse-redis -e TESTING=true -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+# Backend tests (Docker)
+docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -e REDIS_HOST=opspulse-redis -e TESTING=true -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+# 38 passed in 21.36s
+
+# Frontend build (Host)
+cd frontend && npm run build
+# tsc && vite build: 0 errors
 ```
 
 ### Exact Next Task
-Day 13 — Alert Evaluation: Implement the evaluation engine in Celery worker that checks newly ingested metric batches against enabled alert rules, evaluating sliding windows and consecutive breach counters.
+**Day 19 — Overview Page:**
+1. Connect React Overview page to live backend APIs (`GET /api/v1/agents`, `GET /api/v1/incidents`).
+2. Display live agent count (Online / Degraded / Offline) and active incidents summary.
+3. Author frontend API client service and component tests.

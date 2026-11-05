@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import agents, alerts, audit, auth, health, metrics, users
+from app.api.v1 import agents, alerts, audit, auth, health, incidents, metrics, users
 
 api_router = APIRouter()
 
@@ -30,6 +30,9 @@ api_router.include_router(metrics.router, tags=["metrics"])
 
 # Alert Rules (Admin/Operator)
 api_router.include_router(alerts.router, tags=["alerts"])
+
+# Incidents (All Roles Read, Admin/Operator Transitions)
+api_router.include_router(incidents.router, tags=["incidents"])
 
 # Audit Trail (Admin Only)
 api_router.include_router(audit.router, tags=["audit"])

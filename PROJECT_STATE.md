@@ -1,10 +1,10 @@
 # OpsPulse — Project State
 
 **Last Updated:** 2026-11-05  
-**Current Phase:** Phase 4 — Storage and Alerts (In Progress)  
-**Current Roadmap Day:** Day 12 (Alert-Rule Management) Complete  
+**Current Phase:** Phase 6 — Frontend (In Progress)  
+**Current Roadmap Day:** Day 18 (Frontend Setup) Complete  
 **Overall Status:** `IN PROGRESS`  
-**Completion Percentage:** ~40% (Days 1–12 Complete, 59/59 Tests Passing)  
+**Completion Percentage:** ~60% (Days 1–18 Complete, 69/69 Tests Passing, Frontend Build Clean)  
 
 ---
 
@@ -22,21 +22,27 @@
 | **Heartbeat & Ingestion (Day 9)**| `COMPLETE` | `POST /agents/heartbeat` (204), `POST /metrics/ingest` (202), caller identity anti-spoofing validation |
 | **Queue & Worker (Day 10)** | `COMPLETE` | Redis 7 broker, Celery worker, `processed_batches` table & migration `95e7fdc22d79` with idempotency deduplication |
 | **Persistence & Downsampling (Day 11)**| `COMPLETE` | Relational tables (`metric_records`, `metric_disks`, `metric_networks`, `metric_aggregates`), query endpoints, retention cleanup |
-| **Alert-Rule Management (Day 12)**| `COMPLETE` | `AlertRule` model, migration `d21a482937e2`, full CRUD REST endpoints, RBAC authorization, audit logging |
-| **Quality & Tests** | `COMPLETE` | Ruff clean (0 errors), Mypy strict (0 issues), 59/59 tests passing (28 backend + 31 agent) |
+| **Alert-Rule Management (Day 12)**| `COMPLETE` | `AlertRule` model, migration `d21a482937e2`, full CRUD REST endpoints, RBAC permissions, audit logging |
+| **Alert Evaluation Engine (Day 13)**| `COMPLETE` | `AlertEngine` with `>`, `>=`, `<`, `<=`, `==`, evaluation windows, sustained consecutive breaches, missing data vs zero |
+| **Alert Reliability & Cooldowns (Day 14)**| `COMPLETE` | Incident deduplication, cooldown suppression, auto-resolution on metric normalization, Celery integration |
+| **Incident Creation & DB (Day 15)**| `COMPLETE` | `Incident` & `IncidentEvent` models, migration `3e33c503e175`, compound indexes, Pydantic schemas |
+| **Incident Lifecycle (Day 16)**| `COMPLETE` | State machine (`OPEN -> ACKNOWLEDGED -> RESOLVED -> REOPENED`), investigation notes, event timeline, RBAC |
+| **Agent Health Monitor (Day 17)**| `COMPLETE` | Celery task `monitor_agent_health` (ONLINE -> DEGRADED -> OFFLINE), offline incident deduplication, heartbeat auto-recovery |
+| **Frontend Setup (Day 18)**| `COMPLETE` | React 18, Vite 6, Tailwind CSS 3, TypeScript 5, dashboard layout, sidebar navigation, production build verified |
+| **Quality & Tests** | `COMPLETE` | 69/69 tests passing (38 backend + 31 agent), 0 failures, clean frontend build |
 
 ---
 
-## 2. In-Progress & Pending Roadmap Phases
+## 2. Roadmap Phases Status
 
 | Phase | Days | Focus Area | Status |
 |---|---|---|---|
 | **Phase 1 — Foundation** | Days 1–3 | Repo, FastAPI skeleton, PostgreSQL, Alembic | `COMPLETE` (100%) |
 | **Phase 2 — Monitoring Agent** | Days 4–7 | CPU, Memory, Disk, Network collectors, Agent runtime | `COMPLETE` (100%) |
 | **Phase 3 — Identity & Ingestion** | Days 8–10 | Agent provisioning, Ingest endpoint, Redis/Celery queue | `COMPLETE` (100%) |
-| **Phase 4 — Storage & Alerts** | Days 11–14 | Persistence (Day 11 Done), Rules (Day 12 Done), Evaluation (Day 13), Reliability (Day 14) | `IN PROGRESS` (50%) |
-| **Phase 5 — Incidents & Health** | Days 15–17 | Incident lifecycle state machine, Agent offline detection | `NOT STARTED` |
-| **Phase 6 — Frontend Dashboard** | Days 18–22 | React, Vite, Tailwind, Recharts, WebSocket live feeds | `NOT STARTED` |
+| **Phase 4 — Storage & Alerts** | Days 11–14 | Persistence, Rules, Evaluation Engine, Reliability | `COMPLETE` (100%) |
+| **Phase 5 — Incidents & Health** | Days 15–17 | Incident lifecycle state machine, Agent offline detection | `COMPLETE` (100%) |
+| **Phase 6 — Frontend Dashboard** | Days 18–22 | React setup (Day 18 Done), Overview (Day 19), Infrastructure (Day 20), Incidents (Day 21), Alerts & WebSockets (Day 22) | `IN PROGRESS` (20%) |
 | **Phase 7 — Recovery & Simulation** | Days 23–25 | Allowlisted remediation, CPU/RAM/Disk failure injection | `NOT STARTED` |
 | **Phase 8 — Hardening & Finalization**| Days 26–30 | End-to-end integration, Latency benchmarks, Documentation | `NOT STARTED` |
 
@@ -44,9 +50,9 @@
 
 ## 3. Test & Verification Status
 
-- **Automated Tests:** 59/59 passed (28 backend in Docker + 31 agent on host)
+- **Automated Tests:** 69/69 passed (38 backend in Docker + 31 agent on host)
   - Agent (31 tests): CPU, Memory, Disk, Network collectors, API client with exponential backoff, Scheduler ring buffer.
-  - Backend (28 tests):
+  - Backend (38 tests):
     - Health and Database: 8 tests
     - Auth & Users: 5 tests
     - Agents & Provisioning: 1 test
@@ -55,16 +61,23 @@
     - Queue & Worker: 3 tests
     - Metric Persistence & Downsampling: 3 tests
     - Alert Rule CRUD & RBAC: 2 tests
-- **Linter Checks:** Ruff clean across all modules (0 errors)
-- **Formatter Checks:** Ruff format clean across backend (52 files) and agent (15 files)
-- **Type Checker Status:** Mypy strict mode clean across all source files (0 issues)
+    - Alert Evaluation Engine: 5 tests
+    - Incident Lifecycle & RBAC: 3 tests
+    - Agent Health & Recovery: 2 tests
+- **Frontend Build Status:** `npm run build` cleanly passed with 0 TypeScript/Vite errors.
+- **Database Migrations:** 6 migrations applied to head:
+  - `5d7b14653929` (users & agents)
+  - `8d5340076971` (audit_logs)
+  - `95e7fdc22d79` (processed_batches)
+  - `4ae56bb50e96` (metrics & aggregates)
+  - `d21a482937e2` (alert_rules)
+  - `3e33c503e175` (incidents & events)
 
 ---
 
 ## 4. Exact Next Task
 
-**Day 13 — Alert Evaluation Engine:**
-1. Implement alert evaluation logic in Celery worker.
-2. Evaluate sliding evaluation windows and consecutive breaches.
-3. Handle dimension filters (e.g. `/` mount point or `eth0` interface) and aggregations.
-4. Add comprehensive unit and integration tests.
+**Day 19 — Overview Page:**
+1. Connect React Overview page to live backend APIs (`GET /api/v1/agents`, `GET /api/v1/incidents`).
+2. Display live agent count (Online / Degraded / Offline) and active incidents summary.
+3. Author frontend API client service and component tests.

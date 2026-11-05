@@ -548,3 +548,133 @@ Implemented the memory telemetry subsystem in `agent/opspulse_agent/collectors/m
 - Agent pytest on host: 31 passed in 0.49s
 - Total tests passing: 59/59
 - Static analysis: Ruff clean (0 errors across 52 files), Mypy clean (0 errors in 41 files)
+
+---
+
+## Day 13 — Alert Evaluation: Operators, Windows & Consecutive Breaches
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 4 In Progress)
+
+### Objectives
+- [x] Implement operator comparison functions (`>`, `>=`, `<`, `<=`, `==`) with floating epsilon
+- [x] Implement evaluation window sample filtering
+- [x] Enforce consecutive breach requirement to filter transient spikes
+- [x] Handle missing data distinct from zero values
+- [x] Handle dimension filters and EACH vs MAX aggregation modes
+- [x] Author unit and integration tests
+
+### Files Changed
+- `backend/app/services/alert_engine.py`
+- `backend/tests/test_alert_evaluation.py`
+- `docs/reports/DAY_13_REPORT.md`
+
+---
+
+## Day 14 — Alert Reliability: Cooldowns, Deduplication & Auto-Resolution
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 4 Complete)
+
+### Objectives
+- [x] Deduplicate active incidents for `(agent_id, rule_id, dimension)`
+- [x] Implement post-resolution cooldown period suppression
+- [x] Auto-resolve active incidents when metric values normalize
+- [x] Integrate alert evaluation into Celery `process_metric_batch` worker pipeline
+- [x] Author repeated breach, cooldown, and auto-resolution tests
+
+### Files Changed
+- `backend/app/services/alert_engine.py`
+- `backend/app/workers/tasks.py`
+- `backend/tests/test_alert_evaluation.py`
+- `docs/reports/DAY_14_REPORT.md`
+
+---
+
+## Day 15 — Incident Creation: Database Models & Schemas
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 5 In Progress)
+
+### Objectives
+- [x] Implement `Incident` and `IncidentEvent` database models
+- [x] Generate and execute Alembic migration `3e33c503e175`
+- [x] Add compound indexes for sub-millisecond deduplication queries
+- [x] Create Pydantic response and request schemas
+
+### Files Changed
+- `backend/app/models/incident.py`
+- `backend/app/models/__init__.py`
+- `backend/alembic/versions/3e33c503e175_create_incidents_and_events.py`
+- `backend/app/schemas/incident.py`
+- `docs/reports/DAY_15_REPORT.md`
+
+---
+
+## Day 16 — Incident Lifecycle: Transitions, Notes & Timeline History
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 5 In Progress)
+
+### Objectives
+- [x] Implement state transition validation (`OPEN -> ACKNOWLEDGED -> RESOLVED -> REOPENED`)
+- [x] Implement endpoints for acknowledge, resolve, reopen, and note additions
+- [x] Implement filtering, pagination, detail, and timeline event endpoints
+- [x] Enforce RBAC (Viewer read-only, Admin/Operator state changes)
+- [x] Record audit logs for incident state changes
+- [x] Author comprehensive integration tests
+
+### Files Changed
+- `backend/app/api/v1/incidents.py`
+- `backend/app/api/v1/router.py`
+- `backend/tests/test_incidents.py`
+- `docs/reports/DAY_16_REPORT.md`
+
+---
+
+## Day 17 — Agent Health: Heartbeat Monitoring & Offline Detection
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 5 Complete)
+
+### Objectives
+- [x] Implement `monitor_agent_health` Celery task
+- [x] Transition stale agents to `DEGRADED` (>60s) and `OFFLINE` (>120s)
+- [x] Create and deduplicate "Agent Offline" critical incidents
+- [x] Auto-recover agents back to `ONLINE` on heartbeat receipt and auto-resolve offline incidents
+- [x] Author health transition, deduplication, and recovery tests
+
+### Files Changed
+- `backend/app/workers/tasks.py`
+- `backend/app/api/v1/agents.py`
+- `backend/tests/test_agent_health.py`
+- `docs/reports/DAY_17_REPORT.md`
+
+---
+
+## Day 18 — Frontend Setup: React 18, Vite, Tailwind & Dashboard Layout
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 6 In Progress)
+
+### Objectives
+- [x] Initialize React 18, Vite 6, TypeScript 5, and Tailwind CSS 3 in `frontend/`
+- [x] Configure client-side routing with `react-router-dom`
+- [x] Define TypeScript interfaces matching backend OpenAPI schemas
+- [x] Implement responsive dark-mode Dashboard Layout with active navigation sidebar and header
+- [x] Scaffold initial pages (Overview, Infrastructure, Incidents, Alert Rules, Audit Logs)
+- [x] Verify production build (`tsc && vite build`)
+
+### Files Changed
+- `frontend/package.json`
+- `frontend/tsconfig.json`
+- `frontend/vite.config.ts`
+- `frontend/tailwind.config.js`
+- `frontend/postcss.config.js`
+- `frontend/index.html`
+- `frontend/src/index.css`
+- `frontend/src/types/index.ts`
+- `frontend/src/components/layout/DashboardLayout.tsx`
+- `frontend/src/pages/OverviewPage.tsx`
+- `frontend/src/pages/InfrastructurePage.tsx`
+- `frontend/src/pages/IncidentsPage.tsx`
+- `frontend/src/pages/AlertRulesPage.tsx`
+- `frontend/src/pages/AuditLogsPage.tsx`
+- `frontend/src/App.tsx`
+- `frontend/src/main.tsx`
+- `frontend/.gitignore`
+- `docs/reports/DAY_18_REPORT.md`

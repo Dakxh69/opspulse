@@ -11,6 +11,12 @@ from app.models.alert import (
 )
 from app.models.audit import AuditLog
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.models.incident import (
+    Incident,
+    IncidentEvent,
+    IncidentEventType,
+    IncidentStatus,
+)
 from app.models.metric import MetricAggregate, MetricDisk, MetricNetwork, MetricRecord
 from app.models.processed_batch import BatchStatus, ProcessedBatch
 from app.models.user import User, UserRole
@@ -25,6 +31,10 @@ __all__ = [
     "Base",
     "BatchStatus",
     "DimensionAggregation",
+    "Incident",
+    "IncidentEvent",
+    "IncidentEventType",
+    "IncidentStatus",
     "MetricAggregate",
     "MetricDisk",
     "MetricNetwork",
