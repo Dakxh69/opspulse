@@ -68,12 +68,28 @@ class Settings(BaseSettings):
         )
 
     # --- Redis / Celery ---
-    REDIS_URL: str = "redis://localhost:6379/0"
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_URL: str | None = None
+    CELERY_BROKER_URL: str | None = None
+    CELERY_RESULT_BACKEND: str | None = None
+
+    @property
+    def effective_redis_url(self) -> str:
+        return self.REDIS_URL or f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+
+    @property
+    def effective_celery_broker_url(self) -> str:
+        return self.CELERY_BROKER_URL or f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+
+    @property
+    def effective_celery_result_backend(self) -> str:
+        return self.CELERY_RESULT_BACKEND or f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/1"
 
     # --- Security ---
     SECRET_KEY: str = "CHANGE_ME_AT_LEAST_32_RANDOM_CHARS"
+    FIRST_ADMIN_EMAIL: str | None = None
+    FIRST_ADMIN_PASSWORD: str | None = None
 
     # --- JWT ---
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15

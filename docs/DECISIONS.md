@@ -372,3 +372,173 @@ Option 3: Guard `total_bytes`. When `sm.total > 0`, use `float(sm.percent)`. Whe
 ### Consequences
 - Backend alert rules for swap will not trigger false positives on hosts without swap.
 - Agent runs cleanly inside both containerized simulations and real host machines.
+
+
+---
+
+## DEC-013 — Direct Bcrypt Hashing over Deprecated Passlib
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Upstream `passlib` has been unmaintained for several years and fails on Python 3.12+ environments running modern `bcrypt >= 4.1.0`. Passlib inspects `bcrypt.__about__.__version__`, which was deprecated and removed in recent releases, causing Passlib to trigger erroneous 72-byte truncation test failures.
+
+### Decision
+Use standard, native `bcrypt` (`hashpw`/`checkpw`) directly in `app/core/security.py`. All inputs are explicitly encoded to UTF-8 and bounded to 72 bytes.
+
+### Reason
+- Eliminates dependency on unmaintained code.
+- Eliminates Python deprecation warnings (`crypt` module removal).
+- High performance, type-safe, and native C-extension speed.
+
+---
+
+## DEC-014 — HttpOnly Session Cookies with Bearer Fallback
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Browser clients storing authentication tokens in `localStorage` are vulnerable to token theft via Cross-Site Scripting (XSS). Headless API clients and CLI commands require bearer tokens in the `Authorization` header.
+
+### Decision
+Set `access_token` in an `HttpOnly`, `SameSite=Strict` cookie upon login (`/api/v1/auth/login`). Allow `app/api/deps.py:get_current_user` to check `request.cookies.get("access_token")` first, with fallback to `Authorization: Bearer <token>`.
+
+### Reason
+- Mitigates XSS attack vectors for web dashboard users.
+- Retains compatibility for headless scripting, automated testing, and CLI integrations.
+
+---
+
+## DEC-015 — Guaranteed Audit Persistence on Failure
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Security events like failed logins, credential revocations, or unauthorized role attempts often culminate in an `HTTPException`. Standard database session wrappers abort and rollback on unhandled exceptions, inadvertently discarding the audit event.
+
+### Decision
+`record_audit_log` commits its database transaction immediately upon insertion.
+
+### Reason
+- Preserves immutable security logs even when request execution terminates in an HTTP error code.
+- Satisfies spec Section 17.10 requirements.
+
+---
+
+## DEC-016 — Agent Identity Anti-Spoofing Check
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+An agent presenting valid `X-Agent-ID` and `X-Agent-Secret` headers could maliciously or accidentally transmit a payload claiming to originate from a different host UUID.
+
+### Decision
+`POST /api/v1/metrics/ingest` validates that `batch.agent_id == str(current_agent.id)`. Any divergence returns HTTP 400 Bad Request.
+
+### Reason
+- Prevents identity spoofing and cross-host data pollution.
+
+---
+
+## DEC-017 — Bounded Batch Size Enforcement
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Unbounded metric arrays can cause memory exhaustion on worker nodes.
+
+### Decision
+Enforce `min_length=1` and `max_length=100` on `MetricBatch.metrics` at the Pydantic schema validation layer.
+
+### Reason
+- Fast, declarative rejection (HTTP 422) before allocating database or Celery resources.
+
+---
+
+## DEC-018 — Kombu & Redis Version Pinning
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Celery 5.4.0's extra dependencies require `redis < 6.0.0`, while unpinned Kombu 5.7.0 requires `redis >= 6.1.0`.
+
+### Decision
+Pin `kombu==5.4.2` and `redis==5.2.0` in `backend/requirements.txt`.
+
+### Reason
+- Ensures complete compatibility across Celery, Kombu, and Redis.
+
+---
+
+## DEC-019 — 503 Service Unavailable on Queue Failure
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+If Redis or Celery is unavailable when an agent transmits a batch, returning 200 or 500 would lead to lost telemetry.
+
+### Decision
+Return HTTP 503 Service Unavailable when `process_metric_batch.delay()` fails.
+
+### Reason
+- Instructs the agent's retry client to retain unsent telemetry in its ring buffer.
+
+---
+
+## DEC-020 — Relational Normalization with ON DELETE CASCADE
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Monitored hosts have multiple disk partitions and network interfaces per sample.
+
+### Decision
+Store `metric_records` as the parent, with foreign-key cascaded child tables `metric_disks` and `metric_networks`.
+
+### Reason
+- Enables fast relational queries per partition and automatic cleanup when parent records expire.
+
+---
+
+## DEC-021 — Idempotent Metric Downsampling
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Downsampling tasks can overlap or be rerun.
+
+### Decision
+Define a unique constraint on `(agent_id, metric_key, dimension, bucket_start, bucket_size)` using PostgreSQL's `NULLS NOT DISTINCT` support.
+
+### Reason
+- Guarantees downsampling is strictly idempotent.
+
+---
+
+## DEC-022 — Role-Based Access for Alert Rule Management
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Alert rules govern incident generation and operational alerts.
+
+### Decision
+Viewers have read-only access (`GET /alerts/rules`). Only `ADMIN` and `OPERATOR` roles may create, update, or delete alert rules.
+
+### Reason
+- Enforces strict operational boundaries while maintaining observability.
+
+---
+
+## DEC-023 — Alert Rule Auditability
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Spec Section 17.10 requires logging alert-rule modifications.
+
+### Decision
+Every alert rule creation, modification, and deletion creates an entry in `audit_logs` capturing the actor user UUID and diff metadata.
+
+### Reason
+- Complete accountability for operational threshold changes.

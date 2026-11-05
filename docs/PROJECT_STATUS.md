@@ -1,10 +1,10 @@
 # OpsPulse — Project Status
 
 **Last updated:** 2026-11-05  
-**Current phase:** Phase 2 — Monitoring Agent (In Progress)  
-**Current day:** Day 5 Complete  
+**Current phase:** Phase 4 — Storage and Alerts (In Progress)  
+**Current day:** Day 12 Complete  
 **Overall status:** `IN PROGRESS`  
-**Completion:** ~25% (verified acceptance criteria)
+**Completion:** ~40% (verified acceptance criteria)
 
 ---
 
@@ -19,39 +19,41 @@
 | Health & readiness probes | `COMPLETE` | GET /api/v1/health with live DB ping |
 | CI and containerization | `COMPLETE` | Dockerfile, docker-compose, GitHub Actions (backend + agent) |
 | Database foundation | `COMPLETE` | PostgreSQL 17, asyncpg + psycopg2 engines |
-| Models & Migrations | `COMPLETE` | User & Agent models, Alembic migrations verified |
-| CPU Telemetry Collector | `COMPLETE` | Overall usage, per-core metrics, frequency, loadavg |
+| Models & Migrations | `COMPLETE` | User, Agent, AuditLog, ProcessedBatch, MetricRecord, AlertRule |
+| CPU Telemetry Collector | `COMPLETE` | Non-blocking delta sampling, per-core metrics, frequency, loadavg |
 | Memory Telemetry Collector | `COMPLETE` | RAM total/used/avail/percent, Swap metrics, zero-swap support |
+| Disk & Network Collectors (Day 6) | `COMPLETE` | Filesystem filter, counter rates, counter reset handling |
+| Agent Runtime & Daemon (Day 7) | `COMPLETE` | Configuration, API client, exponential backoff, ring buffer |
+| Agent Provisioning & Auth (Day 8) | `COMPLETE` | JWT HttpOnly cookies, 64-char secrets, rotation/revocation, Admin CLI |
+| Heartbeat & Ingestion (Day 9) | `COMPLETE` | Liveness heartbeat, metric validation, identity spoofing protection |
+| Queue & Worker (Day 10) | `COMPLETE` | Redis 7 broker, Celery worker, idempotency deduplication table |
+| Metric Persistence & Downsampling (Day 11) | `COMPLETE` | Relational tables, query endpoints, retention cleanup & downsampling |
+| Alert-Rule Management (Day 12) | `COMPLETE` | Model, CRUD endpoints, RBAC authorization, audit trail |
 
 ## In Progress
 
 | Module | Status | Notes |
 |---|---|---|
-| Phase 2: Monitoring Agent | `IN PROGRESS` | Days 4 & 5 done; Day 6 next |
+| Phase 4: Storage & Alerts | `IN PROGRESS` | Days 11 & 12 complete; Day 13 (Alert Evaluation) next |
 
 ## Pending Modules
 
-- Disk & network collectors (Day 6)
-- Agent runtime & scheduler (Day 7)
-- Agent provisioning & auth (Day 8)
-- Heartbeat & ingestion API (Day 9)
-- Queue & worker (Day 10)
-- Metric persistence & alerts (Days 11–14)
-- Incident management (Days 15–17)
-- Frontend (Days 18–22)
-- Recovery & simulation (Days 23–25)
-- Hardening & finalization (Days 26–30)
+- Alert evaluation & sliding windows (Day 13)
+- Alert reliability & recovery (Day 14)
+- Incident creation & lifecycle (Days 15–17)
+- Frontend dashboard (Days 18–22)
+- Recovery policies & simulation (Days 23–25)
+- Hardening, integration & benchmarking (Days 26–30)
 
 ## Latest Test Status
 
 | Suite | Status | Notes |
 |---|---|---|
-| Backend tests | `PASSING` | 8/8 passed in Docker |
-| Agent tests | `PASSING` | 9/9 passed on host Python |
-| Total tests | `PASSING` | 17/17 passed |
+| Backend tests | `PASSING` | 28/28 passed in Docker |
+| Agent tests | `PASSING` | 31/31 passed on host Python |
+| Total tests | `PASSING` | 59/59 passed |
 | Lint & format | `PASSING` | Ruff check & format clean (all files) |
-| Type check | `PASSING` | Mypy strict passed (0 errors) |
-| Host telemetry test | `PASSING` | Real host CPU, RAM (7.07 GB), Swap (4.29 GB) verified |
+| Type check | `PASSING` | Mypy strict passed (0 errors across 41 backend files + agent) |
 
 ## Known Blockers
 
@@ -59,4 +61,4 @@ None.
 
 ## Exact Next Task
 
-**Day 6:** Disk mount collector and Network counter/rate delta collector in `agent/opspulse_agent/collectors/` with validation and unit tests.
+Day 13 — Alert Evaluation: Implement alert rule evaluation engine against ingested metric batches in Celery, evaluating sliding windows and consecutive breaches.

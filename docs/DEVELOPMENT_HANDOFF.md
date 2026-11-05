@@ -5,18 +5,18 @@
 
 ---
 
-## Handoff: Session 5 (Day 5 Complete — Phase 2 In Progress)
+## Handoff: Session 6 (Day 12 Complete — Phase 4 In Progress)
 **Date:** 2026-11-05  
-**Current State:** Phase 1 complete; Days 4 and 5 of Phase 2 complete. Ready for Day 6 (Disk and Network Collectors).
+**Current State:** Phase 1, Phase 2, and Phase 3 are 100% complete. Phase 4 is 50% complete (Days 11 and 12 done). Ready for Day 13 (Alert Evaluation).
 
 ### Repository Location
 `/home/daxx69/.gemini/antigravity/scratch/opspulse`  
 **Branch:** `main`  
 
 ### Current Day and Phase
-- **Day:** 5 of 30 complete (Monitoring Agent: Memory & Swap Telemetry)
-- **Phase:** Phase 2 — Monitoring Agent (In Progress — 50%)
-- **Roadmap Position:** Day 6 next (Disk and Network Collectors)
+- **Day:** 12 of 30 complete (Alert-Rule Management)
+- **Phase:** Phase 4 — Storage and Alerts (In Progress — 50%)
+- **Roadmap Position:** Day 13 next (Alert Evaluation Engine)
 
 ### Verified Completed Work
 - [x] Host environment audited (Ubuntu 26.04.1, Docker 29, Docker Compose v5.6.0)
@@ -24,51 +24,81 @@
 - [x] Multi-stage Docker containerization using `python:3.12-slim` with `/opt/venv`
 - [x] FastAPI application factory with async lifespan, CORS, and typed settings
 - [x] PostgreSQL 17 Alpine healthy in Docker Compose
-- [x] Dual-engine SQLAlchemy setup (asyncpg for API, psycopg2 for migrations/workers)
-- [x] Core relational models (`User`, `Agent`) and Alembic migration `5d7b14653929`
-- [x] Readiness probe `GET /api/v1/health` with live PostgreSQL ping (`{"database": "ok"}`)
-- [x] `CpuCollector` in `agent/opspulse_agent/collectors/cpu.py` (non-blocking delta sampling)
-- [x] `MemoryCollector` in `agent/opspulse_agent/collectors/memory.py` (RAM + Swap, zero-swap support)
-- [x] Real host telemetry verified: 12 CPU cores, 7.07 GB RAM, 4.29 GB Swap
-- [x] 17/17 total automated tests passing across repository (8 backend + 9 agent)
-- [x] Ruff clean (0 errors across all modules) & Mypy clean (0 issues across all modules)
-- [x] GitHub Actions CI workflow updated with agent job
+- [x] Redis 7 Alpine healthy in Docker Compose
+- [x] Dual-engine SQLAlchemy setup (asyncpg for API, psycopg2 for Celery workers & migrations)
+- [x] Complete Linux Host Monitoring Agent (`opspulse_agent`):
+  - CPU collector (non-blocking delta sampling, multi-core, loadavg)
+  - Memory collector (RAM, swap, zero-swap support)
+  - Disk collector (physical partitions, pseudo-fs filtering)
+  - Network collector (counter deltas, rate calculations, counter reset handling)
+  - Configuration loader (YAML & env overrides)
+  - HTTP client with jittered exponential backoff retries
+  - Scheduler with bounded ring buffer (100 samples) and graceful shutdown signal handlers
+- [x] Identity & Provisioning (Day 8):
+  - User authentication via HttpOnly SameSite=Strict cookies with Bearer fallback
+  - Native Bcrypt hashing
+  - Agent token generation (64-char hex) and rotation/revocation
+  - CLI initial admin bootstrap (`python -m app.cli seed-admin`)
+  - Security audit trail table (`audit_logs`) with immediate commit persistence
+- [x] Ingestion & Heartbeat (Day 9):
+  - `POST /api/v1/agents/heartbeat` (204 No Content, updates status to ONLINE)
+  - `POST /api/v1/metrics/ingest` (202 Accepted, anti-spoofing identity validation)
+  - Batch size enforcement (1 to 100 samples)
+- [x] Queue & Worker Pipeline (Day 10):
+  - Celery worker configured with Redis broker
+  - Deduplication table (`processed_batches`) with unique constraint on `(agent_id, batch_id)`
+  - Task `process_metric_batch` with automatic retry backoff and idempotency handling
+  - 503 Service Unavailable returned when queue broker is disconnected
+- [x] Metric Persistence & Maintenance (Day 11):
+  - Normalized relational schema (`metric_records`, `metric_disks`, `metric_networks`) with CASCADE deletion
+  - Downsampled aggregate table (`metric_aggregates`)
+  - Query endpoints: `GET /metrics/{agent_id}`, `/latest`, `/summary`
+  - Retention cleanup task (`cleanup_old_metrics`) and downsampling task (`downsample_metrics`)
+- [x] Alert-Rule Management (Day 12):
+  - `AlertRule` model, migration `d21a482937e2`
+  - CRUD REST endpoints (`POST`, `GET`, `PATCH`, `DELETE /api/v1/alerts/rules`)
+  - Role-based authorization (Admin/Operator write, Viewer read)
+  - Audit log entries on rule creation, modification, deletion
+- [x] 59/59 automated tests passing (28 backend in Docker + 31 agent on host)
+- [x] Static analysis clean: Ruff (0 errors across 52 backend + 15 agent files), Mypy strict (0 errors in 41 backend files + agent)
 
-### Incomplete Work (Phase 2 Target)
-- [ ] Agent Disk mounts & Network counter delta collectors (Day 6)
-- [ ] Agent runtime: scheduler, bounded local buffer queue, exponential backoff, graceful shutdown (Day 7)
+### Incomplete Work (Target: Days 13–18)
+- [ ] Alert evaluation engine in Celery/Worker with sliding windows (Day 13)
+- [ ] Alert reliability: sustained breaches, cooldown suppression, auto-clearing (Day 14)
+- [ ] Incident creation & deduplication state machine (Day 15)
+- [ ] Incident lifecycle endpoints: acknowledge, resolve, reopen, notes (Day 16)
+- [ ] Agent health evaluator & offline detection (Day 17)
+- [ ] Frontend setup with Vite, React, Tailwind CSS (Day 18)
 
 ### Latest Test State
-- **Automated Tests:** 17 passed (8 backend in Docker + 9 agent on host)
+- **Automated Tests:** 59 passed (28 backend in Docker + 31 agent on host)
 - **Linter / Formatter:** 0 errors across all source files (`ruff check`, `ruff format --check`)
 - **Type Checker:** 0 errors across all source files (`mypy`)
-- **Live Smoke Tests:**
-  - Backend: `GET /api/v1/health` -> `{"status":"ok","version":"0.1.0","database":"ok"}`
-  - Agent CPU: 12 cores, 4.3% CPU, 4.31 loadavg
-  - Agent Memory: 7.07 GB total RAM, 81.6% usage; 4.29 GB Swap, 87.4% usage
 
 ### Active Issues
-- None. All previous issues resolved.
+- None.
 
 ### Recent Decisions
-- DEC-001 to DEC-008: Core monorepo, auth, retention, and schema decisions.
-- DEC-009: Containerized Python 3.12 development and testing strategy.
-- DEC-010: Database connection pooling strategy (NullPool for tests, AsyncAdaptedQueuePool for production).
-- DEC-011: Non-blocking CPU metric collection strategy (interval=None with initialization priming).
-- DEC-012: Safe zero-swap and virtual memory collection strategy (guard against zero swap allocation in containers and headless VMs).
+- DEC-013: Direct Bcrypt hashing over deprecated passlib.
+- DEC-014: HttpOnly session cookies with Bearer fallback.
+- DEC-015: Guaranteed audit persistence on failure.
+- DEC-016: Agent identity anti-spoofing check.
+- DEC-017: Bounded batch size enforcement.
+- DEC-018: Kombu & Redis version pinning (`kombu==5.4.2`, `redis==5.2.0`).
+- DEC-019: 503 Service Unavailable on queue failure.
+- DEC-020: Relational normalization with ON DELETE CASCADE.
+- DEC-021: Idempotent metric downsampling with `NULLS NOT DISTINCT`.
+- DEC-022: Role-based access for alert rule management (Admin & Operator write, Viewer read).
+- DEC-023: Alert rule auditability.
 
-### Important Files to Inspect on Resume
-1. `spec.md` — Authoritative specification
-2. `PROJECT_STATE.md` & `docs/PROJECT_STATUS.md` — Current completion status
-3. `docs/reports/DAY_05_REPORT.md` — Day 5 closure report
-4. `agent/opspulse_agent/collectors/memory.py` — Memory collector implementation
-5. `agent/tests/test_memory_collector.py` — Memory unit tests
+### Exact Commands to Resume Testing
+```bash
+# Agent tests
+cd /home/daxx69/.gemini/antigravity/scratch/opspulse/agent && .venv/bin/pytest -v
 
-### Exact Next Task (Day 6 — Disk and Network Collectors)
-1. In `agent/opspulse_agent/collectors/disk.py`, implement `DiskCollector` using `psutil.disk_partitions()` and `psutil.disk_usage()`.
-2. Filter out pseudo-filesystems (`proc`, `sysfs`, `devtmpfs`, `squashfs`, `tmpfs`, `overlay`).
-3. In `agent/opspulse_agent/collectors/network.py`, implement `NetworkCollector` using `psutil.net_io_counters(pernic=True)`.
-4. Calculate traffic transfer rates (bytes/sec, packets/sec, errors/sec) from counter deltas divided by elapsed wall time.
-5. Handle counter resets (reboots, interface restarts) and disappearing interfaces.
-6. Author unit tests in `agent/tests/test_disk_collector.py` and `agent/tests/test_network_collector.py`.
-7. Verify Ruff and Mypy strict compliance.
+# Backend tests
+cd /home/daxx69/.gemini/antigravity/scratch/opspulse && docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -e REDIS_HOST=opspulse-redis -e TESTING=true -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+```
+
+### Exact Next Task
+Day 13 — Alert Evaluation: Implement the evaluation engine in Celery worker that checks newly ingested metric batches against enabled alert rules, evaluating sliding windows and consecutive breach counters.

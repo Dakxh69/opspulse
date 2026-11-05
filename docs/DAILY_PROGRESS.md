@@ -353,3 +353,198 @@ Implemented the memory telemetry subsystem in `agent/opspulse_agent/collectors/m
 
 ### Next Day
 - Day 6: Disk and Network metric collectors (mounted filesystems, counter deltas, rate calculations, counter reset handling).
+
+
+---
+
+## Day 6 — Monitoring Agent: Disk & Network Telemetry Collectors
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 2 In Progress)
+
+### Objectives
+- [x] Implement physical filesystem collector filtering pseudo-mounts (`PSEUDO_FSTYPES`)
+- [x] Implement network collector calculating rates from monotonic delta timestamps
+- [x] Handle interface appearance/disappearance and counter reset reboots
+- [x] Author 9 unit tests across disk and network collectors (all passing)
+
+### Files Changed
+- `agent/opspulse_agent/collectors/disk.py`
+- `agent/opspulse_agent/collectors/network.py`
+- `agent/opspulse_agent/collectors/__init__.py`
+- `agent/tests/test_disk_collector.py`
+- `agent/tests/test_network_collector.py`
+- `docs/reports/DAY_06_REPORT.md`
+
+### Commands and Verification
+- `agent/.venv/bin/pytest -v` — 18 passed in 0.28s
+
+---
+
+## Day 7 — Monitoring Agent: Runtime Daemon & Scheduler
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 2 Complete — 100%)
+
+### Objectives
+- [x] Implement agent configuration loader from YAML and environment variables
+- [x] Implement telemetry payload schemas (`MetricSample`, `MetricBatch`)
+- [x] Implement HTTP client with jittered exponential backoff retries
+- [x] Implement collection loop, 100-sample ring buffer, and signal handlers
+- [x] Author 13 unit tests across config, payload, client, and scheduler
+
+### Files Changed
+- `agent/opspulse_agent/config.py`
+- `agent/opspulse_agent/payload.py`
+- `agent/opspulse_agent/client/api_client.py`
+- `agent/opspulse_agent/scheduler.py`
+- `agent/opspulse_agent/main.py`
+- `agent/config.example.yaml`
+- `agent/tests/test_config.py`
+- `agent/tests/test_payload.py`
+- `agent/tests/test_api_client.py`
+- `agent/tests/test_scheduler.py`
+- `docs/reports/DAY_07_REPORT.md`
+
+### Commands and Verification
+- `agent/.venv/bin/pytest -v` — 31 passed in 0.39s
+
+---
+
+## Day 8 — Identity & Access: Agent Provisioning & User Authentication
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 3 In Progress)
+
+### Objectives
+- [x] Implement user login/logout/me endpoints issuing HttpOnly SameSite=Strict cookies
+- [x] Implement Admin-only user creation and RBAC role assignment
+- [x] Implement agent provisioning with 64-char secrets and bcrypt hash storage
+- [x] Implement agent credential rotation and revocation flows
+- [x] Implement audit-log model (Section 17.10) with immediate transaction persistence
+- [x] Implement CLI command `python -m app.cli seed-admin` for first administrator
+- [x] Author 16 backend unit tests covering auth, agents, audit trail, and CLI
+
+### Files Changed
+- `backend/app/core/security.py`
+- `backend/app/models/audit.py`
+- `backend/app/services/audit_service.py`
+- `backend/app/api/deps.py`
+- `backend/app/schemas/auth.py`
+- `backend/app/schemas/agent.py`
+- `backend/app/schemas/audit.py`
+- `backend/app/api/v1/auth.py`
+- `backend/app/api/v1/agents.py`
+- `backend/app/api/v1/users.py`
+- `backend/app/api/v1/audit.py`
+- `backend/app/cli.py`
+- `backend/alembic/versions/8d5340076971_create_audit_logs_table.py`
+- `backend/tests/test_auth.py`
+- `backend/tests/test_agents.py`
+- `backend/tests/test_audit.py`
+- `docs/reports/DAY_08_REPORT.md`
+
+### Commands and Verification
+- Backend pytest in Docker: 16 passed in 7.09s
+- Mypy: 0 errors in 32 source files
+
+---
+
+## Day 9 — Ingestion: Heartbeat & Ingestion API
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 3 In Progress)
+
+### Objectives
+- [x] Implement `POST /api/v1/agents/heartbeat` with `get_current_agent` dependency (204 No Content)
+- [x] Implement backend metric schemas mirroring agent telemetry specifications
+- [x] Implement `POST /api/v1/metrics/ingest` with agent identity anti-spoofing validation
+- [x] Enforce batch size limits (1 to 100 samples)
+- [x] Author 4 unit and integration tests
+
+### Files Changed
+- `backend/app/schemas/metrics.py`
+- `backend/app/api/v1/agents.py`
+- `backend/app/api/v1/metrics.py`
+- `backend/tests/test_ingest_api.py`
+- `docs/reports/DAY_09_REPORT.md`
+
+### Commands and Verification
+- Backend pytest in Docker: 20 passed in 10.53s
+
+---
+
+## Day 10 — Queue & Worker: Celery, Redis & Idempotency Pipeline
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 3 Complete — 100%)
+
+### Objectives
+- [x] Configure Redis 7 container and Celery worker application
+- [x] Implement `processed_batches` model and migration `95e7fdc22d79` with `(agent_id, batch_id)` uniqueness
+- [x] Implement `process_metric_batch` worker task with idempotency deduplication
+- [x] Wire `POST /api/v1/metrics/ingest` to publish tasks to Redis and return 202 Accepted (503 on broker failure)
+- [x] Author integration tests for task queuing, deduplication, and broker failure handling
+
+### Files Changed
+- `backend/app/workers/celery_app.py`
+- `backend/app/workers/tasks.py`
+- `backend/app/models/processed_batch.py`
+- `backend/alembic/versions/95e7fdc22d79_create_processed_batches_table.py`
+- `backend/app/api/v1/metrics.py`
+- `backend/requirements.txt`
+- `backend/tests/test_queue_worker.py`
+- `docs/reports/DAY_10_REPORT.md`
+
+### Commands and Verification
+- Backend pytest in Docker: 23 passed in 11.08s
+
+---
+
+## Day 11 — Storage: Metric Persistence & Downsampling
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 4 In Progress)
+
+### Objectives
+- [x] Implement relational metric models (`MetricRecord`, `MetricDisk`, `MetricNetwork`, `MetricAggregate`)
+- [x] Generate and execute Alembic migration `4ae56bb50e96`
+- [x] Implement transactional persistence in `process_metric_batch` worker task
+- [x] Implement query endpoints (`GET /metrics/{agent_id}`, `/latest`, `/summary`)
+- [x] Implement scheduled retention cleanup and downsampling tasks
+- [x] Author integration tests for persistence, queries, cleanup, and downsampling
+
+### Files Changed
+- `backend/app/models/metric.py`
+- `backend/alembic/versions/4ae56bb50e96_create_metrics_tables.py`
+- `backend/app/schemas/metrics.py`
+- `backend/app/workers/tasks.py`
+- `backend/app/api/v1/metrics.py`
+- `backend/tests/test_metrics_persistence.py`
+- `docs/reports/DAY_11_REPORT.md`
+
+### Commands and Verification
+- Backend pytest in Docker: 26 passed in 14.50s
+
+---
+
+## Day 12 — Alert-Rule Management: Rules, RBAC & Audit Trail
+**Date:** 2026-11-05  
+**Status:** COMPLETE (Phase 4 In Progress)
+
+### Objectives
+- [x] Implement `AlertRule` model and migration `d21a482937e2`
+- [x] Implement validation schemas for comparison operators, thresholds, evaluation windows, and cooldowns
+- [x] Implement alert rule CRUD endpoints (`POST`, `GET`, `PATCH`, `DELETE /api/v1/alerts/rules`)
+- [x] Enforce RBAC permissions (Admin/Operator write, Viewer read-only)
+- [x] Record audit log entries on rule creation, modification, and deletion
+- [x] Author 2 comprehensive integration tests covering RBAC, full CRUD, and audit verification
+
+### Files Changed
+- `backend/app/models/alert.py`
+- `backend/alembic/versions/d21a482937e2_create_alert_rules_table.py`
+- `backend/app/schemas/alert.py`
+- `backend/app/api/v1/alerts.py`
+- `backend/app/api/v1/router.py`
+- `backend/tests/test_alert_rules.py`
+- `docs/reports/DAY_12_REPORT.md`
+
+### Commands and Verification
+- Backend pytest in Docker: 28 passed in 18.30s
+- Agent pytest on host: 31 passed in 0.49s
+- Total tests passing: 59/59
+- Static analysis: Ruff clean (0 errors across 52 files), Mypy clean (0 errors in 41 files)

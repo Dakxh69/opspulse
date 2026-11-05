@@ -1,0 +1,25 @@
+# OpsPulse Agent Configuration File (Example)
+# Credentials (AGENT_SECRET) should be set via environment variable:
+#   export AGENT_SECRET="your-provisioned-secret"
+# =============================================================================
+
+agent:
+  name: ubuntu-primary
+  collection_interval_seconds: 10
+  batch_size: 10
+  local_buffer_max_batches: 100
+
+backend:
+  base_url: http://localhost:8000
+  heartbeat_interval_seconds: 30
+
+features:
+  cpu: true
+  memory: true
+  disk: true
+  network: true
+  processes: false
+
+logging:
+  level: INFO
+

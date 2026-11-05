@@ -112,3 +112,27 @@ Day 4 is COMPLETE. Phase 2 (Monitoring Agent) is in progress. Ready for Day 5 (M
 
 ### Status
 Day 5 is COMPLETE. Phase 2 (Monitoring Agent) is 50% complete. Ready for Day 6 (Disk and Network Collectors).
+
+
+---
+
+## Session 4 — 2026-11-05: Implementation of Days 6 Through 12
+
+### Scope & Objective
+Execute user directive: "complete day 6 - 12 in a go and test it if it works and then again repeat the for next 6 days and so on".
+
+### Work Delivered
+1. **Day 6 (Disk & Network Collectors):** Physical partition filter (`PSEUDO_FSTYPES`), rate deltas, counter reset detection, 9 unit tests.
+2. **Day 7 (Agent Runtime & Scheduler):** Agent config loader with YAML & env overrides, Pydantic schemas, HTTP client with exponential backoff, scheduler with 100-sample ring buffer, 13 unit tests. Functional host daemon complete.
+3. **Day 8 (Agent Provisioning, User Auth & Audit):** Native bcrypt hashing, JWT HttpOnly sessions, agent 64-char secrets and rotation/revocation, Admin CLI bootstrap `python -m app.cli seed-admin`, `audit_logs` table & migration `8d5340076971`, 16 backend tests.
+4. **Day 9 (Heartbeat & Ingestion API):** `POST /agents/heartbeat` (204), `POST /metrics/ingest` (202), anti-spoofing identity validation, batch limits (1 to 100).
+5. **Day 10 (Queue & Worker Pipeline):** Redis 7 container started, Celery worker app configured, `processed_batches` table & migration `95e7fdc22d79` with `(agent_id, batch_id)` uniqueness, idempotency deduplication task, 503 on broker disconnect.
+6. **Day 11 (Metric Persistence & Downsampling):** Normalized `metric_records`, `metric_disks`, `metric_networks`, and `metric_aggregates` tables & migration `4ae56bb50e96`, query endpoints (`/metrics/{id}`, `/latest`, `/summary`), scheduled retention cleanup (`cleanup_old_metrics`) and downsampling (`downsample_metrics`).
+7. **Day 12 (Alert-Rule Management):** `AlertRule` model & migration `d21a482937e2`, comparison operators, sliding windows, thresholds, CRUD REST endpoints, RBAC authorization, and audit logging.
+8. **Reports:** Generated `DAY_06_REPORT.md`, `DAY_07_REPORT.md`, `DAY_08_REPORT.md`, `DAY_09_REPORT.md`, `DAY_10_REPORT.md`, `DAY_11_REPORT.md`, `DAY_12_REPORT.md` in `docs/reports/`.
+9. **Verification:**
+   - 28/28 Backend tests passing in Docker (`opspulse-backend:test`).
+   - 31/31 Agent tests passing on host Python.
+   - Total: 59/59 automated tests passing.
+   - Ruff: 0 errors across 52 backend files and 15 agent files.
+   - Mypy: 0 errors across 41 backend files and agent package.

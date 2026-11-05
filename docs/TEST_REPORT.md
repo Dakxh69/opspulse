@@ -160,3 +160,62 @@ docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e
 - **Formatter Status:** Ruff format clean (all files)
 - **Type Checker Status:** Mypy strict clean (0 issues across all source files)
 - **Live Smoke Test:** Verified real host RAM (7.07 GB, 81.6% used) and Swap (4.29 GB, 87.4% used)
+
+
+---
+
+## Test Run: TR-006
+**Date:** 2026-11-05  
+**Run ID:** Days-6-to-12-consolidation  
+**Phase:** Phase 2 (Completed), Phase 3 (Completed), Phase 4 (In Progress)
+
+### Commands
+```bash
+# Agent tests
+cd agent && .venv/bin/pytest -v
+cd agent && .venv/bin/ruff check opspulse_agent/ tests/
+cd agent && .venv/bin/ruff format --check opspulse_agent/ tests/
+cd agent && .venv/bin/mypy opspulse_agent/ tests/
+
+# Backend migrations
+docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -v $(pwd)/backend:/app opspulse-backend:test alembic upgrade head
+
+# Backend lint, format, type check
+docker run --rm -v $(pwd)/backend:/app opspulse-backend:test ruff check app tests
+docker run --rm -v $(pwd)/backend:/app opspulse-backend:test ruff format --check app tests
+docker run --rm -v $(pwd)/backend:/app opspulse-backend:test mypy app
+
+# Backend tests
+docker run --rm --network opspulse_default -e POSTGRES_HOST=opspulse-postgres -e POSTGRES_PASSWORD=CHANGE_ME -e REDIS_HOST=opspulse-redis -e TESTING=true -v $(pwd)/backend:/app opspulse-backend:test pytest -v
+```
+
+### Result
+- **Agent Unit Tests:** 31 passed in 0.49s (100% pass)
+  - `test_cpu_collector.py` (4 passed)
+  - `test_memory_collector.py` (5 passed)
+  - `test_disk_collector.py` (4 passed)
+  - `test_network_collector.py` (5 passed)
+  - `test_config.py` (3 passed)
+  - `test_payload.py` (2 passed)
+  - `test_api_client.py` (5 passed)
+  - `test_scheduler.py` (3 passed)
+- **Backend Tests:** 28 passed in 18.30s (100% pass)
+  - `test_database.py` (4 passed)
+  - `test_health.py` (4 passed)
+  - `test_auth.py` (5 passed)
+  - `test_agents.py` (1 passed)
+  - `test_audit.py` (2 passed)
+  - `test_ingest_api.py` (4 passed)
+  - `test_queue_worker.py` (3 passed)
+  - `test_metrics_persistence.py` (3 passed)
+  - `test_alert_rules.py` (2 passed)
+- **Total Suite Passing:** 59 automated tests passing across the repository
+- **Linter Status:** Ruff clean (0 errors)
+- **Formatter Status:** Ruff clean across 52 backend files and 15 agent files
+- **Type Checker Status:** Mypy strict clean (0 errors across 41 backend files + agent)
+- **Database Migrations:** 4 migrations applied to head:
+  - `5d7b14653929` (users & agents)
+  - `8d5340076971` (audit_logs)
+  - `95e7fdc22d79` (processed_batches)
+  - `4ae56bb50e96` (metric_records, disks, networks, aggregates)
+  - `d21a482937e2` (alert_rules)

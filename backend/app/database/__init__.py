@@ -19,4 +19,3 @@ __all__ = [
     "get_db",
     "sync_engine",
 ]
-
