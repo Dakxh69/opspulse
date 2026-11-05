@@ -664,3 +664,4 @@ Self-healing infrastructure automatically executes deterministic recovery routin
 | **Optimistic React UI** | `frontend/src/` | TanStack Query cache invalidation + Recharts SVG time-series | Real-time, responsive operator console with auto-reconnecting telemetry |
 | **Multi-Stage Docker** | `backend/Dockerfile`, `frontend/Dockerfile` | Builder stage compiles deps $\to$ slim runtime stage serves app | Strips compilers, minimizes container footprint, and hardens security |
 | **Automated Remediation** | `backend/app/services/remediation.py` | Allowlisted recovery actions with cooldown safety limits | Resolves repetitive transient outages autonomously, dropping MTTR to seconds |
+
