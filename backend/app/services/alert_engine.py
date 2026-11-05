@@ -16,7 +16,6 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -302,12 +301,16 @@ class AlertEngine:
         active_stmt = select(Incident).where(
             Incident.agent_id == agent.id,
             Incident.rule_id == rule.id,
-            Incident.dimension == dimension if dimension is not None else Incident.dimension.is_(None),
-            Incident.status.in_([
-                IncidentStatus.OPEN,
-                IncidentStatus.ACKNOWLEDGED,
-                IncidentStatus.INVESTIGATING,
-            ]),
+            Incident.dimension == dimension
+            if dimension is not None
+            else Incident.dimension.is_(None),
+            Incident.status.in_(
+                [
+                    IncidentStatus.OPEN,
+                    IncidentStatus.ACKNOWLEDGED,
+                    IncidentStatus.INVESTIGATING,
+                ]
+            ),
         )
         active_incident = session.execute(active_stmt).scalars().first()
 
@@ -324,7 +327,9 @@ class AlertEngine:
             cooldown_stmt = select(func.max(Incident.resolved_at)).where(
                 Incident.agent_id == agent.id,
                 Incident.rule_id == rule.id,
-                Incident.dimension == dimension if dimension is not None else Incident.dimension.is_(None),
+                Incident.dimension == dimension
+                if dimension is not None
+                else Incident.dimension.is_(None),
                 Incident.status == IncidentStatus.RESOLVED,
             )
             last_resolved = session.execute(cooldown_stmt).scalar()
@@ -409,7 +414,9 @@ class AlertEngine:
                 )
                 active_incident.events.append(resolve_event)
                 session.flush()
-                logger.info(f"Auto-resolved incident {active_incident.id} for agent {agent.id} rule {rule.name}")
+                logger.info(
+                    f"Auto-resolved incident {active_incident.id} for agent {agent.id} rule {rule.name}"
+                )
                 return active_incident
 
         return None

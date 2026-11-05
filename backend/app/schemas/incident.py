@@ -70,5 +70,6 @@ class IncidentNoteRequest(BaseModel):
 class IncidentActionRequest(BaseModel):
     """Optional payload when acknowledging, resolving, or reopening an incident."""
 
-    message: str | None = Field(default=None, max_length=2000, description="Optional explanation note")
-
+    message: str | None = Field(
+        default=None, max_length=2000, description="Optional explanation note"
+    )

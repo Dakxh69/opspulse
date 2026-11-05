@@ -12,6 +12,7 @@ Verifies:
 from __future__ import annotations
 
 import uuid
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,8 +20,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import create_access_token, hash_secret
 from app.main import app
 from app.models.agent import Agent, AgentStatus
-from app.models.audit import AuditLog
-from app.models.recovery import ActionType, ExecutionStatus, RecoveryPolicy
 from app.models.user import User, UserRole
 
 
@@ -70,7 +69,9 @@ async def test_recovery_policy_rbac_and_execution(
     op_user, op_token = recovery_users["OPERATOR"]
     _, viewer_token = recovery_users["VIEWER"]
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
         # 1. Viewer attempts to create policy -> 403 Forbidden
         policy_payload = {
             "name": "Restart Systemd Nginx",
@@ -141,4 +142,3 @@ async def test_recovery_policy_rbac_and_execution(
         assert res_dry.status_code == 201
         assert res_dry.json()["status"] == "SUCCEEDED"
         assert "[DRY-RUN]" in res_dry.json()["output_summary"]
-

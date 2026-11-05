@@ -11,6 +11,7 @@ select = ["E", "W", "F", "I", "B", "N", "UP"]
 ignore = [
     "E501",   # line too long — handled by formatter
     "B008",   # do not perform function call in default argument (FastAPI Depends pattern)
+    "UP042",  # inherit from str and enum.Enum (compatible with SQLAlchemy Enum columns)
 ]
 
 [tool.ruff.lint.isort]

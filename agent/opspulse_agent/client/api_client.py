@@ -130,4 +130,3 @@ class OpsPulseApiClient:
                 time.sleep(sleep_duration)
 
         return False
-

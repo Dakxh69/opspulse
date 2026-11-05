@@ -342,11 +342,13 @@ def monitor_agent_health() -> dict[str, int]:
                 inc_stmt = select(Incident).where(
                     Incident.agent_id == agent.id,
                     Incident.dimension == "heartbeat",
-                    Incident.status.in_([
-                        IncidentStatus.OPEN,
-                        IncidentStatus.ACKNOWLEDGED,
-                        IncidentStatus.INVESTIGATING,
-                    ]),
+                    Incident.status.in_(
+                        [
+                            IncidentStatus.OPEN,
+                            IncidentStatus.ACKNOWLEDGED,
+                            IncidentStatus.INVESTIGATING,
+                        ]
+                    ),
                 )
                 active_inc = session.execute(inc_stmt).scalars().first()
 

@@ -64,4 +64,3 @@ def test_agent_config_env_variable_overrides() -> None:
         assert config.backend.agent_secret == "secret-token-xyz"
         assert config.backend.base_url == "http://api.remote:8000"
         assert config.logging.level == "DEBUG"
-

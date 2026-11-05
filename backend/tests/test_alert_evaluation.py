@@ -16,10 +16,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime, timedelta
 
-import pytest
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from app.database.session import SyncSessionLocal
 from app.models.agent import Agent, AgentStatus
@@ -217,30 +214,32 @@ def test_dimension_filter_and_aggregation() -> None:
         session.flush()
 
         # Add disk / (70% - not breaching) and /data (90% - breaching both)
-        session.add_all([
-            MetricDisk(
-                id=uuid.uuid4(),
-                record_id=rec.id,
-                mount_point="/",
-                device="/dev/sda1",
-                fstype="ext4",
-                total_bytes=1000,
-                used_bytes=700,
-                free_bytes=300,
-                usage_percent=70.0,
-            ),
-            MetricDisk(
-                id=uuid.uuid4(),
-                record_id=rec.id,
-                mount_point="/data",
-                device="/dev/sdb1",
-                fstype="ext4",
-                total_bytes=1000,
-                used_bytes=900,
-                free_bytes=100,
-                usage_percent=90.0,
-            ),
-        ])
+        session.add_all(
+            [
+                MetricDisk(
+                    id=uuid.uuid4(),
+                    record_id=rec.id,
+                    mount_point="/",
+                    device="/dev/sda1",
+                    fstype="ext4",
+                    total_bytes=1000,
+                    used_bytes=700,
+                    free_bytes=300,
+                    usage_percent=70.0,
+                ),
+                MetricDisk(
+                    id=uuid.uuid4(),
+                    record_id=rec.id,
+                    mount_point="/data",
+                    device="/dev/sdb1",
+                    fstype="ext4",
+                    total_bytes=1000,
+                    used_bytes=900,
+                    free_bytes=100,
+                    usage_percent=90.0,
+                ),
+            ]
+        )
         session.commit()
 
         incidents = AlertEngine.evaluate_agent(session, agent.id, now=now)
@@ -326,9 +325,9 @@ def test_deduplication_auto_resolution_and_cooldown() -> None:
         assert incidents1[0].last_seen_at == t1
 
         # Check total incidents in DB for this agent
-        total = session.execute(
-            select(Incident).where(Incident.agent_id == agent.id)
-        ).scalars().all()
+        total = (
+            session.execute(select(Incident).where(Incident.agent_id == agent.id)).scalars().all()
+        )
         assert len(total) == 1  # Only 1 incident in DB!
 
         # 3. Metric recovers at t0 + 20s: 60% RAM
@@ -367,4 +366,3 @@ def test_deduplication_auto_resolution_and_cooldown() -> None:
 
         incidents3 = AlertEngine.evaluate_agent(session, agent.id, now=t3)
         assert len(incidents3) == 0  # Suppressed by cooldown!
-

@@ -84,4 +84,3 @@ def test_scheduler_buffer_max_depth_drops_oldest() -> None:
     assert len(scheduler.buffer) == 2
     buffered_ids = [b.batch_id for b in scheduler.buffer]
     assert first_batch_id not in buffered_ids
-

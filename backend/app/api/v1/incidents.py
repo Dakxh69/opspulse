@@ -97,11 +97,7 @@ async def get_incident(
     db: AsyncSession = Depends(get_db),
 ) -> Incident:
     """Retrieves single incident with chronological events."""
-    stmt = (
-        select(Incident)
-        .options(selectinload(Incident.events))
-        .where(Incident.id == incident_id)
-    )
+    stmt = select(Incident).options(selectinload(Incident.events)).where(Incident.id == incident_id)
     res = await db.execute(stmt)
     incident = res.scalar_one_or_none()
     if not incident:
@@ -124,11 +120,7 @@ async def acknowledge_incident(
     db: AsyncSession = Depends(get_db),
 ) -> Incident:
     """Transitions an OPEN or INVESTIGATING incident to ACKNOWLEDGED."""
-    stmt = (
-        select(Incident)
-        .options(selectinload(Incident.events))
-        .where(Incident.id == incident_id)
-    )
+    stmt = select(Incident).options(selectinload(Incident.events)).where(Incident.id == incident_id)
     res = await db.execute(stmt)
     incident = res.scalar_one_or_none()
     if not incident:
@@ -148,7 +140,11 @@ async def acknowledge_incident(
     incident.acknowledged_by_user_id = current_user.id
     incident.last_seen_at = now
 
-    msg = (payload.message if payload and payload.message else f"Incident acknowledged by {current_user.email}")
+    msg = (
+        payload.message
+        if payload and payload.message
+        else f"Incident acknowledged by {current_user.email}"
+    )
     event = IncidentEvent(
         id=uuid.uuid4(),
         incident_id=incident.id,
@@ -186,11 +182,7 @@ async def resolve_incident(
     db: AsyncSession = Depends(get_db),
 ) -> Incident:
     """Transitions an active incident to RESOLVED."""
-    stmt = (
-        select(Incident)
-        .options(selectinload(Incident.events))
-        .where(Incident.id == incident_id)
-    )
+    stmt = select(Incident).options(selectinload(Incident.events)).where(Incident.id == incident_id)
     res = await db.execute(stmt)
     incident = res.scalar_one_or_none()
     if not incident:
@@ -211,7 +203,11 @@ async def resolve_incident(
     incident.resolved_at = now
     incident.last_seen_at = now
 
-    msg = (payload.message if payload and payload.message else f"Incident resolved by {current_user.email}")
+    msg = (
+        payload.message
+        if payload and payload.message
+        else f"Incident resolved by {current_user.email}"
+    )
     event = IncidentEvent(
         id=uuid.uuid4(),
         incident_id=incident.id,
@@ -249,11 +245,7 @@ async def reopen_incident(
     db: AsyncSession = Depends(get_db),
 ) -> Incident:
     """Transitions a RESOLVED or CLOSED incident back to OPEN."""
-    stmt = (
-        select(Incident)
-        .options(selectinload(Incident.events))
-        .where(Incident.id == incident_id)
-    )
+    stmt = select(Incident).options(selectinload(Incident.events)).where(Incident.id == incident_id)
     res = await db.execute(stmt)
     incident = res.scalar_one_or_none()
     if not incident:
@@ -274,7 +266,11 @@ async def reopen_incident(
     incident.resolved_by_user_id = None
     incident.last_seen_at = now
 
-    msg = (payload.message if payload and payload.message else f"Incident reopened by {current_user.email}")
+    msg = (
+        payload.message
+        if payload and payload.message
+        else f"Incident reopened by {current_user.email}"
+    )
     event = IncidentEvent(
         id=uuid.uuid4(),
         incident_id=incident.id,
@@ -363,4 +359,3 @@ async def get_incident_events(
     )
     res = await db.execute(stmt)
     return list(res.scalars().all())
-

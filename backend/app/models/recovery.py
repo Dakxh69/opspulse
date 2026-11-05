@@ -119,4 +119,3 @@ class RecoveryExecution(Base, UUIDPrimaryKeyMixin):
         "RecoveryPolicy",
         back_populates="executions",
     )
-

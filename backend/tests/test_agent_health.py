@@ -137,7 +137,9 @@ async def test_agent_auto_recovery_on_heartbeat() -> None:
         incident_id = inc.id
 
     # Agent pings heartbeat endpoint
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
         resp = await client.post(
             "/api/v1/agents/heartbeat",
             headers={
@@ -159,4 +161,3 @@ async def test_agent_auto_recovery_on_heartbeat() -> None:
         # Verify AUTO_CLEARED event logged
         events = incident_refreshed.events
         assert any(e.event_type == IncidentEventType.AUTO_CLEARED for e in events)
-

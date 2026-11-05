@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import create_access_token, hash_secret
 from app.main import app
 from app.models.agent import Agent, AgentStatus
-from app.models.alert import AlertRule, AlertSeverity
+from app.models.alert import AlertSeverity
 from app.models.incident import (
     Incident,
     IncidentEvent,

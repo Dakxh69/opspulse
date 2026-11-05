@@ -131,4 +131,3 @@ def test_disk_item_validation() -> None:
             free_bytes=0,
             usage_percent=100.5,
         )
-

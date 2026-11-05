@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, require_role
+from app.api.deps import require_role
 from app.database.session import get_db
 from app.models.agent import Agent
 from app.models.recovery import ExecutionStatus, RecoveryExecution, RecoveryPolicy
@@ -62,7 +62,11 @@ async def create_recovery_policy(
         target_type="recovery_policy",
         target_id=str(policy.id),
         actor_user_id=current_admin.id,
-        metadata={"name": policy.name, "action_type": policy.action_type.value, "target": policy.target},
+        metadata={
+            "name": policy.name,
+            "action_type": policy.action_type.value,
+            "target": policy.target,
+        },
     )
 
     return policy
@@ -191,7 +195,9 @@ async def execute_recovery_policy(
     else:
         # Live execution: check approval rules
         initial_status = (
-            ExecutionStatus.PENDING_APPROVAL if policy.requires_approval else ExecutionStatus.APPROVED
+            ExecutionStatus.PENDING_APPROVAL
+            if policy.requires_approval
+            else ExecutionStatus.APPROVED
         )
         execution = RecoveryExecution(
             id=uuid.uuid4(),
@@ -280,11 +286,6 @@ async def list_recovery_executions(
     db: AsyncSession = Depends(get_db),
 ) -> list[RecoveryExecution]:
     """Retrieves chronological remediation execution history."""
-    stmt = (
-        select(RecoveryExecution)
-        .order_by(RecoveryExecution.created_at.desc())
-        .limit(limit)
-    )
+    stmt = select(RecoveryExecution).order_by(RecoveryExecution.created_at.desc()).limit(limit)
     res = await db.execute(stmt)
     return list(res.scalars().all())
-

@@ -245,11 +245,13 @@ async def agent_heartbeat(
     offline_stmt = select(Incident).where(
         Incident.agent_id == current_agent.id,
         Incident.dimension == "heartbeat",
-        Incident.status.in_([
-            IncidentStatus.OPEN,
-            IncidentStatus.ACKNOWLEDGED,
-            IncidentStatus.INVESTIGATING,
-        ]),
+        Incident.status.in_(
+            [
+                IncidentStatus.OPEN,
+                IncidentStatus.ACKNOWLEDGED,
+                IncidentStatus.INVESTIGATING,
+            ]
+        ),
     )
     res = await db.execute(offline_stmt)
     active_incidents = list(res.scalars().all())

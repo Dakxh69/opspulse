@@ -33,4 +33,3 @@ def test_metric_batch_validation() -> None:
     # Empty metrics list rejected
     with pytest.raises(ValidationError):
         MetricBatch(agent_id="agent-uuid-001", metrics=[])
-

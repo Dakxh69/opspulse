@@ -68,8 +68,13 @@ async def test_redis_outage_fails_fast_with_503(db_session: AsyncSession) -> Non
     }
 
     # Mock Celery delay to simulate Redis failure
-    with patch("app.workers.tasks.process_metric_batch.delay", side_effect=Exception("Redis connection refused")):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    with patch(
+        "app.workers.tasks.process_metric_batch.delay",
+        side_effect=Exception("Redis connection refused"),
+    ):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://testserver"
+        ) as client:
             resp = await client.post(
                 "/api/v1/metrics/ingest",
                 json=payload,
@@ -90,7 +95,9 @@ async def test_postgres_outage_health_probe() -> None:
     reports 'degraded' status and database='error'.
     """
     with patch("app.api.v1.health.check_database_health", return_value=False):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://testserver"
+        ) as client:
             resp = await client.get("/api/v1/health")
             assert resp.status_code == 200
             data = resp.json()
@@ -128,9 +135,8 @@ def test_agent_disconnection_failure_flow() -> None:
         assert ag.status == AgentStatus.OFFLINE
 
         # Verify offline incident created
-        inc_stmt = (
-            session.query(Incident)
-            .filter(Incident.agent_id == agent_id, Incident.dimension == "heartbeat")
+        inc_stmt = session.query(Incident).filter(
+            Incident.agent_id == agent_id, Incident.dimension == "heartbeat"
         )
         incidents = inc_stmt.all()
         assert len(incidents) == 1

@@ -31,7 +31,9 @@ class ConnectionManager:
         """Removes a disconnected WebSocket from the active list."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        logger.info(f"WebSocket client disconnected. Active clients: {len(self.active_connections)}")
+        logger.info(
+            f"WebSocket client disconnected. Active clients: {len(self.active_connections)}"
+        )
 
     async def broadcast(self, event_type: str, data: dict[str, Any]) -> None:
         """Broadcasts a structured event payload to all active clients."""
@@ -51,4 +53,3 @@ class ConnectionManager:
 
 # Global singleton manager
 ws_manager = ConnectionManager()
-

@@ -44,10 +44,12 @@ async def websocket_endpoint(
 
     try:
         # Send initial connection confirmation
-        await websocket.send_json({
-            "event": "CONNECTED",
-            "data": {"user_id": payload["sub"], "role": payload.get("role")},
-        })
+        await websocket.send_json(
+            {
+                "event": "CONNECTED",
+                "data": {"user_id": payload["sub"], "role": payload.get("role")},
+            }
+        )
 
         # Keep connection alive while listening for client messages (e.g. ping/pong)
         while True:
@@ -59,4 +61,3 @@ async def websocket_endpoint(
     except Exception as exc:
         logger.error(f"WebSocket unexpected error: {exc}")
         ws_manager.disconnect(websocket)
-

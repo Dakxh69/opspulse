@@ -87,7 +87,11 @@ async def test_e2e_ingestion_and_metric_query_pipeline(db_session: AsyncSession)
         {
             "timestamp": t2.isoformat(),
             "cpu": {"usage_percent": 55.0, "logical_cores": 4},
-            "memory": {"usage_percent": 64.0, "total_bytes": 16000000000, "used_bytes": 10240000000},
+            "memory": {
+                "usage_percent": 64.0,
+                "total_bytes": 16000000000,
+                "used_bytes": 10240000000,
+            },
             "disks": [
                 {
                     "device": "/dev/sda1",
@@ -115,7 +119,9 @@ async def test_e2e_ingestion_and_metric_query_pipeline(db_session: AsyncSession)
 
     # 2. Query metrics via authenticated REST API
     token = create_access_token(subject=str(admin.id), role=admin.role.value)
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
         resp = await client.get(
             f"/api/v1/metrics/{agent_id_str}",
             cookies={"access_token": token},
@@ -202,7 +208,9 @@ async def test_e2e_alert_to_incident_and_rbac_flow(db_session: AsyncSession) -> 
 
     # 3. RBAC check: Viewer attempt to acknowledge must be rejected (403)
     viewer_token = create_access_token(subject=str(viewer.id), role=viewer.role.value)
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
         resp = await client.post(
             f"/api/v1/incidents/{incident_id}/acknowledge",
             cookies={"access_token": viewer_token},
@@ -211,7 +219,9 @@ async def test_e2e_alert_to_incident_and_rbac_flow(db_session: AsyncSession) -> 
 
     # 4. RBAC check: Operator acknowledges successfully (200)
     operator_token = create_access_token(subject=str(operator.id), role=operator.role.value)
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
         resp = await client.post(
             f"/api/v1/incidents/{incident_id}/acknowledge",
             cookies={"access_token": operator_token},
@@ -230,7 +240,9 @@ async def test_e2e_alert_to_incident_and_rbac_flow(db_session: AsyncSession) -> 
         session.add(rec3)
         session.commit()
 
-        incidents_resolved = AlertEngine.evaluate_agent(session, agent_id, now=now + timedelta(seconds=40))
+        incidents_resolved = AlertEngine.evaluate_agent(
+            session, agent_id, now=now + timedelta(seconds=40)
+        )
         session.commit()
         our_resolved = [inc for inc in incidents_resolved if inc.rule_id == rule.id]
         assert len(our_resolved) == 1

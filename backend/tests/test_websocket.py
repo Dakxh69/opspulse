@@ -10,14 +10,15 @@ Verifies:
 from __future__ import annotations
 
 import uuid
+
 import pytest
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app.core.security import create_access_token, hash_secret
+from app.database.session import SyncSessionLocal
 from app.main import app
 from app.models.user import User, UserRole
-from app.database.session import SyncSessionLocal
 
 
 def test_websocket_authentication_success() -> None:
@@ -53,4 +54,3 @@ def test_websocket_rejection_without_token() -> None:
         with client.websocket_connect("/api/v1/ws"):
             pass
     assert exc_info.value.code == 1008
-

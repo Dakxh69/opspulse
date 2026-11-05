@@ -42,4 +42,3 @@ class MetricBatch(BaseModel):
     metrics: list[MetricSample] = Field(
         ..., min_length=1, description="List of collected telemetry samples"
     )
-

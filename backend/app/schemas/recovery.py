@@ -65,4 +65,3 @@ class RecoveryExecutionResponse(BaseModel):
     completed_at: datetime | None = None
     output_summary: str | None = None
     created_at: datetime
-
