@@ -372,3 +372,377 @@ Option 3: Guard `total_bytes`. When `sm.total > 0`, use `float(sm.percent)`. Whe
 ### Consequences
 - Backend alert rules for swap will not trigger false positives on hosts without swap.
 - Agent runs cleanly inside both containerized simulations and real host machines.
+
+
+---
+
+## DEC-013 — Direct Bcrypt Hashing over Deprecated Passlib
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Upstream `passlib` has been unmaintained for several years and fails on Python 3.12+ environments running modern `bcrypt >= 4.1.0`. Passlib inspects `bcrypt.__about__.__version__`, which was deprecated and removed in recent releases, causing Passlib to trigger erroneous 72-byte truncation test failures.
+
+### Decision
+Use standard, native `bcrypt` (`hashpw`/`checkpw`) directly in `app/core/security.py`. All inputs are explicitly encoded to UTF-8 and bounded to 72 bytes.
+
+### Reason
+- Eliminates dependency on unmaintained code.
+- Eliminates Python deprecation warnings (`crypt` module removal).
+- High performance, type-safe, and native C-extension speed.
+
+---
+
+## DEC-014 — HttpOnly Session Cookies with Bearer Fallback
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Browser clients storing authentication tokens in `localStorage` are vulnerable to token theft via Cross-Site Scripting (XSS). Headless API clients and CLI commands require bearer tokens in the `Authorization` header.
+
+### Decision
+Set `access_token` in an `HttpOnly`, `SameSite=Strict` cookie upon login (`/api/v1/auth/login`). Allow `app/api/deps.py:get_current_user` to check `request.cookies.get("access_token")` first, with fallback to `Authorization: Bearer <token>`.
+
+### Reason
+- Mitigates XSS attack vectors for web dashboard users.
+- Retains compatibility for headless scripting, automated testing, and CLI integrations.
+
+---
+
+## DEC-015 — Guaranteed Audit Persistence on Failure
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Security events like failed logins, credential revocations, or unauthorized role attempts often culminate in an `HTTPException`. Standard database session wrappers abort and rollback on unhandled exceptions, inadvertently discarding the audit event.
+
+### Decision
+`record_audit_log` commits its database transaction immediately upon insertion.
+
+### Reason
+- Preserves immutable security logs even when request execution terminates in an HTTP error code.
+- Satisfies spec Section 17.10 requirements.
+
+---
+
+## DEC-016 — Agent Identity Anti-Spoofing Check
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+An agent presenting valid `X-Agent-ID` and `X-Agent-Secret` headers could maliciously or accidentally transmit a payload claiming to originate from a different host UUID.
+
+### Decision
+`POST /api/v1/metrics/ingest` validates that `batch.agent_id == str(current_agent.id)`. Any divergence returns HTTP 400 Bad Request.
+
+### Reason
+- Prevents identity spoofing and cross-host data pollution.
+
+---
+
+## DEC-017 — Bounded Batch Size Enforcement
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Unbounded metric arrays can cause memory exhaustion on worker nodes.
+
+### Decision
+Enforce `min_length=1` and `max_length=100` on `MetricBatch.metrics` at the Pydantic schema validation layer.
+
+### Reason
+- Fast, declarative rejection (HTTP 422) before allocating database or Celery resources.
+
+---
+
+## DEC-018 — Kombu & Redis Version Pinning
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Celery 5.4.0's extra dependencies require `redis < 6.0.0`, while unpinned Kombu 5.7.0 requires `redis >= 6.1.0`.
+
+### Decision
+Pin `kombu==5.4.2` and `redis==5.2.0` in `backend/requirements.txt`.
+
+### Reason
+- Ensures complete compatibility across Celery, Kombu, and Redis.
+
+---
+
+## DEC-019 — 503 Service Unavailable on Queue Failure
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+If Redis or Celery is unavailable when an agent transmits a batch, returning 200 or 500 would lead to lost telemetry.
+
+### Decision
+Return HTTP 503 Service Unavailable when `process_metric_batch.delay()` fails.
+
+### Reason
+- Instructs the agent's retry client to retain unsent telemetry in its ring buffer.
+
+---
+
+## DEC-020 — Relational Normalization with ON DELETE CASCADE
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Monitored hosts have multiple disk partitions and network interfaces per sample.
+
+### Decision
+Store `metric_records` as the parent, with foreign-key cascaded child tables `metric_disks` and `metric_networks`.
+
+### Reason
+- Enables fast relational queries per partition and automatic cleanup when parent records expire.
+
+---
+
+## DEC-021 — Idempotent Metric Downsampling
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Downsampling tasks can overlap or be rerun.
+
+### Decision
+Define a unique constraint on `(agent_id, metric_key, dimension, bucket_start, bucket_size)` using PostgreSQL's `NULLS NOT DISTINCT` support.
+
+### Reason
+- Guarantees downsampling is strictly idempotent.
+
+---
+
+## DEC-022 — Role-Based Access for Alert Rule Management
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Alert rules govern incident generation and operational alerts.
+
+### Decision
+Viewers have read-only access (`GET /alerts/rules`). Only `ADMIN` and `OPERATOR` roles may create, update, or delete alert rules.
+
+### Reason
+- Enforces strict operational boundaries while maintaining observability.
+
+---
+
+## DEC-023 — Alert Rule Auditability
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Spec Section 17.10 requires logging alert-rule modifications.
+
+### Decision
+Every alert rule creation, modification, and deletion creates an entry in `audit_logs` capturing the actor user UUID and diff metadata.
+
+### Reason
+- Complete accountability for operational threshold changes.
+
+---
+
+## DEC-024 — Window-Based Sample Evaluation in Transactional Pipeline
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Metric evaluation must observe temporal trends across recent samples, not just a single instantaneous sample.
+
+### Decision
+The Alert Engine queries recent samples within `evaluation_window_seconds` from PostgreSQL with `selectinload` for child disk/network entities, ensuring full dimension fidelity without N+1 query overhead.
+
+---
+
+## DEC-025 — Compound Active Index for Incident Deduplication
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Checking whether an active incident exists for an agent and rule must be sub-millisecond fast.
+
+### Decision
+Created compound B-tree index `ix_incidents_active_lookup` on `(agent_id, rule_id, dimension, status)` to make deduplication lookups instant.
+
+---
+
+## DEC-026 — Automatic Clear Tracking with Dedicated Event Type
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Operators need to know whether an issue was manually resolved or self-healed by the infrastructure.
+
+### Decision
+Auto-recovered incidents record an explicit `AUTO_CLEARED` timeline event with system actor (`actor_user_id=None`) and measured normal value.
+
+---
+
+## DEC-027 — Event-Sourced Incident History
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Compliance and post-mortem analysis require an immutable log of who took what action on an incident and when.
+
+### Decision
+All state transitions, auto-clearances, and investigation notes are recorded as chronological `IncidentEvent` rows linked to the parent incident with cascading deletes.
+
+---
+
+## DEC-028 — State Machine Transition Enforcement
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Arbitrary state jumps (e.g. acknowledging after resolution) create corrupt incident histories.
+
+### Decision
+Endpoints explicitly validate the starting state before mutating, ensuring lifecycle integrity and proper attribution.
+
+---
+
+## DEC-029 — Asynchronous Heartbeat Monitor with Inbound Ping Auto-Clearance
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Detecting missing heartbeats requires a periodic background evaluation, whereas detecting recovery can happen immediately when an incoming HTTP ping arrives.
+
+### Decision
+Degradation and offline transitions are driven asynchronously by Celery task `monitor_agent_health`, while recovery happens synchronously inside `POST /api/v1/agents/heartbeat` for sub-second incident resolution.
+
+---
+
+## DEC-030 — Vite Bundler with Localhost Reverse Proxy
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+During local development, the frontend runs on port 5173 while FastAPI runs on port 8000. Cross-origin cookie exchange with `HttpOnly SameSite=Strict` cookies can fail if not on the same origin.
+
+### Decision
+Configured Vite dev server proxy to forward `/api` requests directly to `http://localhost:8000`, ensuring cookies and sessions work seamlessly in development without CORS complexity.
+
+---
+
+## DEC-031 — Client-Side Stat Aggregation from Normalized APIs
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Monolithic overview endpoints couple backend database queries to specific UI widget layouts.
+
+### Decision
+Frontend queries `/agents` and `/incidents` concurrently via `Promise.all` and aggregates fleet counts on the client, maintaining lean, decoupled REST APIs.
+
+---
+
+## DEC-032 — High-Density Area and Line Charts via Recharts
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Raw tabular metric data makes identifying CPU spikes or memory leaks slow and tedious.
+
+### Decision
+Integrated Recharts responsive vector charts (`AreaChart`, `LineChart`) styled with custom SVG gradients matching the dark dashboard theme.
+
+---
+
+## DEC-033 — Sticky Master-Detail Incident Triaging Layout
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Navigating away to separate pages for each incident slows down triage during multi-host outages.
+
+### Decision
+Implemented an inline master-detail slide-in panel that allows operators to inspect and resolve multiple alerts without losing their filter context or list scroll position.
+
+---
+
+## DEC-034 — Jittered Exponential Backoff for Real-time WebSockets
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Server restarts or network blips can cause hundreds of browser tabs to reconnect simultaneously, creating a thundering herd.
+
+### Decision
+Frontend hook uses randomized exponential backoff with a 15-second cap and graceful fallback to regular REST polling.
+
+---
+
+## DEC-035 — Two-Phase Approval and Dry-Run Guardrails for Remediation
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Triggering remediation actions during outages must avoid exacerbating service failures through unchecked automated commands.
+
+### Decision
+Implemented a two-phase approval workflow where Operators can request remediation, but actions flagged with `requires_approval` pause in `PENDING_APPROVAL` until explicitly authorized by an Administrator. All actions support safe `dry_run` verification.
+
+---
+
+## DEC-036 — Strictly Bounded and Self-Cleaning Failure Injections
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Host resource generators can easily run away, fill disk space, or trigger kernel Out-Of-Memory (OOM) panics.
+
+### Decision
+All simulation scripts enforce strict maximum memory/file caps and hard execution timeouts, with all allocations and files cleaned up inside guaranteed `try...finally` blocks.
+
+---
+
+## DEC-037 — Fail-Fast 503 Ingestion Semantics for Broker Outages
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+If the queue broker (Redis) is down, an ingestion endpoint might swallow errors or return 500 without informing the agent whether the data was saved.
+
+### Decision
+Ingestion routes catch queue transport exceptions and return HTTP 503 with a structured retry message. This triggers the agent's exponential backoff and ring buffer retention, guaranteeing zero metric loss during broker downtime.
+
+---
+
+## DEC-038 — Dual-Layer Frontend Verification with Vitest and Playwright
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Component unit tests verify UI logic in isolation with mocked APIs, but cannot catch browser-specific layout, routing, or bundling bugs.
+
+### Decision
+Standardize on Vitest with JSDOM for fast component assertions, complemented by headless Playwright browser tests driven by system Google Chrome for authentic routing and DOM verification.
+
+---
+
+## DEC-039 — Strict Warning Hygiene in Automated CI/Test Pipelines
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+Unfiltered third-party library warnings drown out actual application regressions and decrease developer confidence.
+
+### Decision
+Configure explicit warning filters in `pyproject.toml` scoped to external packages (`jose.*`, `httpx.*`), enforcing that internal code remains completely free of deprecation patterns.
+
+---
+
+## DEC-040 — Production Nginx Edge Routing with Native WebSocket Forwarding
+**Date:** 2026-11-05  
+**Status:** ACCEPTED
+
+### Context
+In local development, Vite handles reverse proxying. In production containerization, a dedicated, battle-tested edge web server is required.
+
+### Decision
+Deploy Nginx in the frontend container configured to proxy both standard REST HTTP calls and persistent full-duplex WebSocket connections (`/api/v1/ws`) to the backend with appropriate `Upgrade` and `Connection` headers.

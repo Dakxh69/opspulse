@@ -23,3 +23,4 @@ test.describe('OpsPulse Core Dashboard Navigation & Triage Flow', () => {
     await expect(page.locator('h2')).toContainText('Alert Rules');
   });
 });
+

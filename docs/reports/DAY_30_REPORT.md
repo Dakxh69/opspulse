@@ -79,3 +79,4 @@ Every item in Section 24 of `spec.md` has been tested and verified:
 3. **Frontend Application:** Dark-mode React 18 / Tailwind CSS dashboard with responsive sidebar, live fleet overview, host detail charts, and incident triage panel.
 4. **Operations & Deployment:** Multi-tier `docker-compose.yml`, multi-stage Dockerfiles, and Nginx edge router.
 5. **Documentation & Governance:** Complete set of 30 daily reports (`docs/reports/DAY_01_REPORT.md` to `DAY_30_REPORT.md`), `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and `docs/KNOWN_ISSUES.md`.
+
